@@ -1,0 +1,6 @@
+@Mero_Doctor_Project_HostAddress = http://localhost:5082
+
+GET {{Mero_Doctor_Project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
