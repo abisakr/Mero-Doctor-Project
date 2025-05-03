@@ -1,16 +1,32 @@
 ﻿using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mero_Doctor_Project.Repositories
 {
-    public class Repository : IRepository
+    public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
+        protected readonly ApplicationDbContext _context;
+        protected readonly DbSet<T> _dbSet;
+
         public Repository(ApplicationDbContext context)
         {
             _context = context;
+            _dbSet = _context.Set<T>();
         }
-        // Implement common methods for all repositories here
+
+        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+
+        public async Task<T?> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
+
+        public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+
+        public void Update(T entity) => _dbSet.Update(entity);
+
+        public void Delete(T entity) => _dbSet.Remove(entity);
+
+        public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
     }
-    
+
+
 }

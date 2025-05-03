@@ -48,7 +48,12 @@ builder.Services.AddAuthentication(options =>
 
 
 // Map repositories to interfaces
-//builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<UploadImageHelper>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthDoctorRegistrationRepository, AuthDoctorRegistrationRepository>();
+builder.Services.AddScoped<IAuthPatientRegistrationRepository, AuthPatientRegistrationRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();

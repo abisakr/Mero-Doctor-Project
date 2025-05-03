@@ -1,3 +1,4 @@
+using Mero_Doctor_Project.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,15 +10,18 @@ namespace Mero_Doctor_Project.Controllers
     {
             
         private readonly IWebHostEnvironment _environment;
-        public TestingController(IWebHostEnvironment environment)
+        private readonly UploadImageHelper _uploadImageHelper;
+
+        public TestingController(IWebHostEnvironment environment,UploadImageHelper uploadImageHelper)
         {
            _environment = environment;
+            _uploadImageHelper = uploadImageHelper;
         }
 
        
 
-        [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage(IFormFile file)
+        [HttpPost("upload")]      
+        public async Task<IActionResult> UploadImage(IFormFile file, string folderName)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
@@ -26,28 +30,15 @@ namespace Mero_Doctor_Project.Controllers
             if (!file.ContentType.StartsWith("image/"))
                 return BadRequest("File is not an image.");
 
-            // Get the path to wwwroot/images
-            var uploadsFolder = Path.Combine(_environment.WebRootPath, "images");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+         string  filePath = await _uploadImageHelper.UploadImageAsync(file, folderName);   
 
-            // Generate a unique file name to avoid overwriting
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            // Save the file
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Return the URL to access the image
-            var imageUrl = $"/images/{fileName}";
-            return Ok(new { url = imageUrl });
+            return Ok(new { FilePath = filePath });
         }
-       
-        [HttpPost("replace/{fileName}")]
-        public async Task<IActionResult> ReplaceImage(string fileName, IFormFile newFile)
+
+
+
+        [HttpPost("replace/{folderName}/{fileName}")]
+        public async Task<IActionResult> ReplaceImage(string folderName, string fileName, IFormFile newFile)
         {
             if (newFile == null || newFile.Length == 0)
                 return BadRequest("No new file uploaded.");
@@ -55,24 +46,10 @@ namespace Mero_Doctor_Project.Controllers
             if (!newFile.ContentType.StartsWith("image/"))
                 return BadRequest("File is not an image.");
 
-            var uploadsFolder = Path.Combine(_environment.WebRootPath, "images");
-            var existingFilePath = Path.Combine(uploadsFolder, fileName);
-
-            // Check if the existing file exists
-            if (!System.IO.File.Exists(existingFilePath))
+            var filePath = await _uploadImageHelper.ReplaceImageAsync(folderName, fileName, newFile);
+            if (filePath == null)
                 return NotFound("Image not found.");
-
-            // Delete the existing file
-            System.IO.File.Delete(existingFilePath);
-
-            // Save the new file with the same name
-            using (var stream = new FileStream(existingFilePath, FileMode.Create))
-            {
-                await newFile.CopyToAsync(stream);
-            }
-
-            var imageUrl = $"/images/{fileName}";
-            return Ok(new { url = imageUrl });
+            return Ok(new { FilePath = filePath });
         }
     }
 }
