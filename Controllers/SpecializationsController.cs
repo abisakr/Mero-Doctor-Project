@@ -22,8 +22,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // GET: api/Specialization
-        [HttpGet]
-        public async Task<ActionResult<ResponseModel<List<Specialization>>>> GetAll()
+        [HttpGet("getAllSpecialization")]
+        public async Task<ActionResult<ResponseModel<List<SpecializationDto>>>> GetAll()
         {
             var result = await _specializationRepository.GetAllAsync();
             if (result.Success)
@@ -33,8 +33,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // GET: api/Specialization/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ResponseModel<Specialization>>> GetById(int id)
+        [HttpGet("getById{id}")]
+        public async Task<ActionResult<ResponseModel<SpecializationDto>>> GetById(int id)
         {
             var result = await _specializationRepository.GetByIdAsync(id);
             if (result.Success)
@@ -44,8 +44,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // POST: api/Specialization
-        [HttpPost]
-        public async Task<ActionResult<ResponseModel<Specialization>>> Add([FromBody] SpecializationDto specializationDto)
+        [HttpPost("Add")]
+        public async Task<ActionResult<ResponseModel<SpecializationDto>>> Add([FromBody] SpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
             {
@@ -54,14 +54,14 @@ namespace Mero_Doctor_Project.Controllers
 
             var result = await _specializationRepository.AddAsync(specializationDto);
             if (result.Success)
-                return CreatedAtAction(nameof(GetById), new { id = result.Data.SpecializationId }, result);
+                return Ok(result);
 
             return BadRequest(result);
         }
 
         // PUT: api/Specialization/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ResponseModel<Specialization>>> Update(int id, [FromBody] SpecializationDto specializationDto)
+        [HttpPut("Update{id}")]
+        public async Task<ActionResult<ResponseModel<SpecializationDto>>> Update(int id, [FromBody] SpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
             {
@@ -76,7 +76,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // DELETE: api/Specialization/5
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete{id}")]
         public async Task<ActionResult<ResponseModel<bool>>> Delete(int id)
         {
             var result = await _specializationRepository.DeleteAsync(id);

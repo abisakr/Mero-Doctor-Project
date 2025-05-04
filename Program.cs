@@ -66,6 +66,7 @@ builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>(
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
 builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
 builder.Services.AddScoped<IDoctorWeeklyTimeRangeRepository, DoctorWeeklyTimeRangeRepository>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add CORS policy
 builder.Services.AddCors(options =>

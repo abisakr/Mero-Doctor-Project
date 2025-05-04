@@ -8,17 +8,16 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Mero_Doctor_Project.Repositories
 {
-    public class AuthDoctorRegistrationRepository : IAuthDoctorRegistrationRepository
+    public class AuthDoctorRegistrationRepository : Repository<Doctor>, IAuthDoctorRegistrationRepository
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+
         public AuthDoctorRegistrationRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+            : base(context)
         {
-            _context = context;
             _userManager = userManager;
         }
 
-        // Method for doctor registration 
         public async Task<ResponseModel<Doctor>> DoctorRegisterAsync(DoctorRegistrationDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -34,30 +33,26 @@ namespace Mero_Doctor_Project.Repositories
                 };
 
                 var userResult = await _userManager.CreateAsync(user, dto.Password);
-
                 if (!userResult.Succeeded)
                 {
-                    foreach (var error in userResult.Errors)
-                    {
-                        Console.WriteLine($"User creation error: {error.Description}");
-                    }
+                    var errors = string.Join("; ", userResult.Errors.Select(e => e.Description));
                     return new ResponseModel<Doctor>
                     {
                         Success = false,
-                        Message = "User registration failed.",
-                        Data = null // No doctor data to return
+                        Message = $"User creation failed: {errors}",
+                        Data = null
                     };
                 }
 
                 var roleResult = await _userManager.AddToRoleAsync(user, "Doctor");
                 if (!roleResult.Succeeded)
                 {
-                    Console.WriteLine("Failed to assign Doctor role.");
+                    var errors = string.Join("; ", roleResult.Errors.Select(e => e.Description));
                     return new ResponseModel<Doctor>
                     {
                         Success = false,
-                        Message = "Failed to assign Doctor role.",
-                        Data = null // No doctor data to return
+                        Message = $"Failed to assign Doctor role: {errors}",
+                        Data = null
                     };
                 }
 
@@ -72,32 +67,27 @@ namespace Mero_Doctor_Project.Repositories
                     SpecializationId = dto.SpecializationId
                 };
 
-                await _context.Doctors.AddAsync(doctor);
-                await _context.SaveChangesAsync();
+                await AddAsync(doctor);         // From base Repository
+                await SaveChangesAsync();       // From base Repository
                 await transaction.CommitAsync();
 
                 return new ResponseModel<Doctor>
                 {
                     Success = true,
                     Message = "Doctor registration successful.",
-                    Data = null 
+                    Data = null
                 };
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return new ResponseModel<Doctor>
                 {
                     Success = false,
                     Message = $"Doctor registration failed: {ex.Message}",
-                    Data = null // No doctor data to return
+                    Data = null
                 };
             }
         }
-
-
-
-
     }
-
-
 }
