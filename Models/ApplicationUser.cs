@@ -9,7 +9,7 @@ namespace Mero_Doctor_Project.Models
         public string FullName { get; set; } 
 
         [Url]
-        public string ProfilePictureUrl { get; set; } //while saving make null
+        public string? ProfilePictureUrl { get; set; }
 
         public ICollection<BlogComment> BlogComments { get; set; } // Navigation property
         public ICollection<Doctor> Doctors { get; set; } // Navigation property

@@ -41,7 +41,8 @@ namespace Mero_Doctor_Project.Helper
                     {
                         UserName = "Admin",
                         Email = "admin@health.com",
-                        FullName = "Super Admin"
+                        FullName = "Super Admin",                       
+
                     };
                     var result = await userManager.CreateAsync(user, "Admin@123");
                     if (result.Succeeded)
