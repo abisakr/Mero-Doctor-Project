@@ -71,12 +71,14 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin", builder =>
+    options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        builder.WithOrigins("http://127.0.0.1:5500") // Specify the allowed origin
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials(); // Allow credentials
+        policy.WithOrigins(
+                "http://localhost:52827"
+            )
+
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
@@ -98,7 +100,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
