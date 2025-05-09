@@ -1,5 +1,6 @@
 ﻿using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.DTOs.AuthDto;
+using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Repositories.Interfaces;
@@ -10,13 +11,15 @@ namespace Mero_Doctor_Project.Repositories
     public class AuthPatientRegistrationRepository : Repository<Patient>, IAuthPatientRegistrationRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly TokenGenerator _tokenGenerator;
 
-        public AuthPatientRegistrationRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AuthPatientRegistrationRepository(ApplicationDbContext context, UserManager<ApplicationUser> userManager,TokenGenerator tokenGenerator)
             : base(context)
         {
             _userManager = userManager;
+            _tokenGenerator = tokenGenerator;
         }
-
+      
         public async Task<ResponseModel<Patient>> PatientRegisterAsync(PatientRegistrationDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
