@@ -45,5 +45,25 @@ namespace Mero_Doctor_Project.Helper
                 }
             }
         }
+
+        public async Task NotifyDoctorAsync(string doctorUserId, string message)
+        {
+            if (NotificationHub.UserConnections.TryGetValue(doctorUserId, out var connections))
+            {
+                foreach (var connectionId in connections)
+                {
+                    try
+                    {
+                        await _hubContext.Clients.Client(connectionId)
+                            .SendAsync("ReceiveNotification", "System", message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to notify doctor (ID: {doctorUserId}) at connection {connectionId}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
     }
 }

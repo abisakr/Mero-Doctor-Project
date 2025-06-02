@@ -49,7 +49,7 @@ namespace Mero_Doctor_Project.Repositories
                     {
                         Success = false,
                         Message = "Doctor is rejected",
-                        Data = null
+                        Data =null
                     };
                 }
 
@@ -61,7 +61,7 @@ namespace Mero_Doctor_Project.Repositories
                 {
                     Success = true,
                     Message = $"Doctor status updated to: {status}",
-                    Data = null
+                    Data = new DoctorInfoDto { UserId = doctor.UserId }
                 };
             }
             catch (Exception ex)

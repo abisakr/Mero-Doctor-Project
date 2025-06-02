@@ -24,20 +24,24 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<ActionResult<ResponseModel<DoctorInfoDto>>> VerifyDoctor(int id, [FromBody] DoctorStatus status)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             var result = await _adminRepository.VerifyDoctorAsync(id, status);
+
             if (result.Success)
             {
-                await _notificationHelper.NotifyAdminsAsync($"A doctor has {status}  successfully.");
-                return Ok(result);
+                var doctorUserId = result.Data.UserId; 
 
+                var message = $"Your verification status has been updated to {status}.";
+
+                await _notificationHelper.NotifyDoctorAsync(doctorUserId, message);
+
+                return Ok(result);
             }
 
             return NotFound(result);
         }
+
 
         [HttpGet("verified")]
         public async Task<ActionResult<ResponseModel<List<DoctorInfoDto>>>> GetVerifiedDoctors()
