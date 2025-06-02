@@ -1,4 +1,5 @@
 ﻿using Mero_Doctor_Project.DTOs.Admin; // Make sure this is the correct namespace for DoctorInfoDto
+using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Models.Enums;
 using Mero_Doctor_Project.Repositories.Interfaces;
@@ -11,10 +12,12 @@ namespace Mero_Doctor_Project.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminRepository _adminRepository;
+        private readonly NotificationHelper _notificationHelper;
 
-        public AdminController(IAdminRepository adminRepository)
+        public AdminController(IAdminRepository adminRepository, NotificationHelper notificationHelper)
         {
             _adminRepository = adminRepository;
+            _notificationHelper = notificationHelper;
         }
 
         [HttpPut("verify/{id}")]
@@ -27,7 +30,11 @@ namespace Mero_Doctor_Project.Controllers
 
             var result = await _adminRepository.VerifyDoctorAsync(id, status);
             if (result.Success)
+            {
+                await _notificationHelper.NotifyAdminsAsync($"A doctor has {status}  successfully.");
                 return Ok(result);
+
+            }
 
             return NotFound(result);
         }

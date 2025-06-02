@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Mero_Doctor_Project.Helper;
+using Mero_Doctor_Project.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,7 @@ builder.Services.AddAuthentication(options =>
 
 // Map repositories to interfaces
 builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<UploadImageHelper>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
@@ -86,6 +88,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -105,5 +108,6 @@ app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 app.UseStaticFiles();
 app.Run();
