@@ -54,6 +54,7 @@ builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<UploadImageHelper>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
 builder.Services.AddScoped<IAuthDoctorRegistrationRepository, AuthDoctorRegistrationRepository>();
 builder.Services.AddScoped<IAuthPatientRegistrationRepository, AuthPatientRegistrationRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
@@ -68,7 +69,6 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
 builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
-builder.Services.AddScoped<IDoctorWeeklyTimeRangeRepository, DoctorWeeklyTimeRangeRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add CORS policy

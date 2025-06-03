@@ -1,5 +1,8 @@
 ﻿using Mero_Doctor_Project.Data;
+using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mero_Doctor_Project.Repositories
 {
@@ -10,7 +13,6 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        // Implement methods for doctor weekly availability management here
+
     }
-  
 }
