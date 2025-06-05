@@ -12,6 +12,7 @@ namespace Mero_Doctor_Project.Models
 
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
+        public bool IsAvailable { get; set; }
 
         public DoctorWeeklyAvailability WeeklyAvailability { get; set; } // Navigation property
 
