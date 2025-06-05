@@ -5,7 +5,7 @@ namespace Mero_Doctor_Project.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LikesController : ControllerBase
+    public class BlogLikesController : ControllerBase
     {
     }
 }
