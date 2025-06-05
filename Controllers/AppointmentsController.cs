@@ -43,8 +43,7 @@ namespace Mero_Doctor_Project.Controllers
         //[Authorize(Roles = "Doctor")]
         public async Task<IActionResult> UpdateAppointmentStatus([FromBody] UpdateAppointmentStatusDto dto)
         {
-            //string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            string doctorUserId = "e6e43d3a-f925-44df-ba94-a84e1dd61157";
+            string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (doctorUserId == null)
                 return Unauthorized(new ResponseModel<string>
