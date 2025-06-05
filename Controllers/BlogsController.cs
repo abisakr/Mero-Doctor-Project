@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using Mero_Doctor_Project.DTOs.BlogsDto;
+using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mero_Doctor_Project.Controllers
@@ -7,5 +11,85 @@ namespace Mero_Doctor_Project.Controllers
     [ApiController]
     public class BlogsController : ControllerBase
     {
+        private readonly IBlogRepository _blogRepository;
+
+        public BlogsController(IBlogRepository blogRepository)
+        {
+            _blogRepository = blogRepository;
+        }
+
+        [HttpPost("Add")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> AddBlog([FromBody] BlogAddDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _blogRepository.AddAsync(dto, userId);
+
+            if (result.Success)
+                return Ok(result);
+
+            return BadRequest(result);
+        }
+
+        [HttpPut("Update")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> UpdateBlog([FromBody] BlogUpdateDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _blogRepository.UpdateAsync(dto, userId);
+
+            if (result.Success)
+                return Ok(result);
+
+            return BadRequest(result);
+        }
+
+        [HttpDelete("Delete/{id}")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> DeleteBlog(int id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _blogRepository.DeleteAsync(id, userId);
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
+        [HttpGet("Get/{id}")]
+        public async Task<IActionResult> GetBlog(int id)
+        {
+            var result = await _blogRepository.GetAsync(id);
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
+        [HttpGet("GetAll")]
+        public async Task<IActionResult> GetAllBlogs()
+        {
+            var result = await _blogRepository.GetAllAsync();
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
+        [HttpGet("GetByDoctor")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> GetDoctorBlogs()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _blogRepository.GetBlogsByDoctorAsync(userId);
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
     }
 }

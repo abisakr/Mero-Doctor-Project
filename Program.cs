@@ -88,6 +88,7 @@ builder.Services.AddScoped<IXRayRecordRepository, XRayRecordRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<IBlogCommentRepository, BlogCommentRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();

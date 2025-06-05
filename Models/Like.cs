@@ -10,9 +10,9 @@ namespace Mero_Doctor_Project.Models
         [Required]
         public int BlogId { get; set; }
 
-        public string? UserId { get; set; } // Nullable for guest likes
+        public string UserId { get; set; }
         [Required]
-        public string Name { get; set; } //if guest then set name guest if userloggd in then put username  
+        public string Name { get; set; } 
 
         public DateTime LikedDate { get; set; }
 
