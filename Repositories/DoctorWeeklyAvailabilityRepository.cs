@@ -41,9 +41,10 @@ namespace Mero_Doctor_Project.Repositories
                                 {
                                     StartTime = time.StartTime,
                                     EndTime = time.EndTime,
+                                    IsAvailable = true,
                                     DoctorWeeklyAvailabilityId = existingDay.DoctorWeeklyAvailabilityId
                                 };
-                                _context.DoctorWeeklyTimeRanges.Add(newRange);
+                                await _context.DoctorWeeklyTimeRanges.AddAsync(newRange);
                             }
                         }
                     }
@@ -63,7 +64,8 @@ namespace Mero_Doctor_Project.Repositories
                             validTimeRanges.Add(new DoctorWeeklyTimeRange
                             {
                                 StartTime = time.StartTime,
-                                EndTime = time.EndTime
+                                EndTime = time.EndTime,
+                                IsAvailable = true
                             });
                         }
 
@@ -99,6 +101,7 @@ namespace Mero_Doctor_Project.Repositories
         }
 
 
+
         public async Task<ResponseModel<DoctorAvailabilityDto>> GetDoctorAvailabilityAsync(int doctorId)
         {
             try
@@ -127,7 +130,8 @@ namespace Mero_Doctor_Project.Repositories
                         TimeRanges = a.TimeRanges.Select(tr => new TimeRangeDto
                         {
                             StartTime = tr.StartTime,
-                            EndTime = tr.EndTime
+                            EndTime = tr.EndTime,
+                            IsAvailable = tr.IsAvailable
                         }).ToList()
                     }).ToList()
                 };
@@ -149,6 +153,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
 
         public async Task<ResponseModel<string>> DeleteDoctorWeekdayAsync(DeleteWeekdayDto dto, string userId)
         {

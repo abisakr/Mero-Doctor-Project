@@ -1,5 +1,10 @@
 ﻿using Mero_Doctor_Project.Data;
+using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Models.Enums;
+using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Mero_Doctor_Project.DTOs.AppointmentDto;
 
 namespace Mero_Doctor_Project.Repositories
 {
@@ -10,7 +15,256 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        // Implement methods for appointment management here
+        public async Task<ResponseModel<string>> BookAppointmentAsync(BookAppointmentDto dto, string userId)
+        {
+            try
+            {
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
+                if (patient == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Patient not found.",
+                        Data = null
+                    };
+                }
+
+                // Use the DayOfWeek coming directly from the UI
+                var availability = await _context.DoctorWeeklyAvailabilities
+                    .Include(a => a.TimeRanges)
+                    .FirstOrDefaultAsync(a => a.DoctorId == dto.DoctorId && a.DayOfWeek == dto.DayOfWeek);
+
+                if (availability == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Doctor is not available on the selected day.",
+                        Data = null
+                    };
+                }
+
+                var matchingTimeRange = availability.TimeRanges.FirstOrDefault(tr =>
+                    tr.IsAvailable &&
+                    dto.StartTime >= tr.StartTime &&
+                    dto.EndTime <= tr.EndTime);
+
+                if (matchingTimeRange == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Selected time slot is not available.",
+                        Data = null
+                    };
+                }
+
+                bool hasConflict = await _context.Appointments.AnyAsync(a =>
+                    a.DoctorId == dto.DoctorId &&
+                    a.DateTime.Date == dto.AppointmentDate.Date &&
+                    ((dto.StartTime >= a.StartTime && dto.StartTime < a.EndTime) ||
+                     (dto.EndTime > a.StartTime && dto.EndTime <= a.EndTime)));
+
+                if (hasConflict)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Selected time slot is already booked.",
+                        Data = null
+                    };
+                }
+
+                matchingTimeRange.IsAvailable = false;
+
+                var appointment = new Appointment
+                {
+                    DoctorId = dto.DoctorId,
+                    PatientId = patient.PatientId,
+                    DayOfWeek = dto.DayOfWeek,
+                    DateTime = dto.AppointmentDate,  // still needed for actual date
+                    StartTime = dto.StartTime,
+                    EndTime = dto.EndTime,
+                    Status = AppointmentStatus.Pending
+                };
+
+                _context.Appointments.Add(appointment);
+                await _context.SaveChangesAsync();
+
+                return new ResponseModel<string>
+                {
+                    Success = true,
+                    Message = "Appointment booked successfully.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
+
+        public async Task<ResponseModel<string>> UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto dto, string doctorUserId)
+        {
+            try
+            {
+                var appointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .FirstOrDefaultAsync(a => a.AppointmentId == dto.AppointmentId);
+
+                if (appointment == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Appointment not found.",
+                        Data = null
+                    };
+                }
+
+                // Ensure the logged-in doctor owns this appointment
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == appointment.DoctorId && d.UserId == doctorUserId);
+                if (doctor == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Unauthorized. You do not have permission to update this appointment.",
+                        Data = null
+                    };
+                }
+
+                // Update status (only if it was pending)
+                if (appointment.Status != AppointmentStatus.Pending)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Only pending appointments can be updated.",
+                        Data = null
+                    };
+                }
+
+                appointment.Status = dto.Status;
+                await _context.SaveChangesAsync();
+
+                return new ResponseModel<string>
+                {
+                    Success = true,
+                    Message = $"Appointment {dto.Status.ToString().ToLower()} successfully.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+        public async Task<ResponseModel<List<AppointmentDto>>> GetAppointmentsByPatientAsync(string userId)
+        {
+            try
+            {
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
+                if (patient == null)
+                {
+                    return new ResponseModel<List<AppointmentDto>>
+                    {
+                        Success = false,
+                        Message = "Patient not found.",
+                        Data = null
+                    };
+                }
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.PatientId == patient.PatientId)
+                    .Include(a => a.Doctor)
+                    .ThenInclude(d => d.User)
+                    .OrderByDescending(a => a.DateTime)
+                    .ToListAsync();
+
+                var dtoList = appointments.Select(a => new AppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId,
+                    Status = a.Status,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    AppointmentDate = a.DateTime,
+                    DoctorName = a.Doctor.User.FullName // assuming navigation through User
+                }).ToList();
+
+                return new ResponseModel<List<AppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Appointments fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<AppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+        public async Task<ResponseModel<List<AppointmentDto>>> GetAppointmentsByDoctorAsync(int doctorId)
+        {
+            try
+            {
+                var appointments = await _context.Appointments
+      .Where(a => a.DoctorId == doctorId)
+      .Include(a => a.Patient)
+          .ThenInclude(p => p.User) // <-- This ensures Patient.User is loaded
+      .OrderByDescending(a => a.DateTime)
+      .ToListAsync();
+
+
+                var dtoList = appointments.Select(a => new AppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId,
+                    Status = a.Status,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    AppointmentDate = a.DateTime,
+                    PatientName = a.Patient.User.FullName // assuming navigation through User
+                }).ToList();
+
+                return new ResponseModel<List<AppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Appointments fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<AppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
     }
-    
+
 }
