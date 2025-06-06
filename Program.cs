@@ -67,18 +67,24 @@ builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
 builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
 builder.Services.AddScoped<IDoctorWeeklyTimeRangeRepository, DoctorWeeklyTimeRangeRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+// Optional: Configure Kestrel to listen only on HTTP
 
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin", builder =>
+    options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        builder.WithOrigins("http://127.0.0.1:5500") // Specify the allowed origin
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials(); // Allow credentials
+        policy.WithOrigins(
+                "http://localhost:52827"
+
+            )
+
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+            // Only needed if using cookies or auth headers
     });
 });
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -98,7 +104,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
