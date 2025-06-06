@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Repositories;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -19,6 +21,23 @@ namespace Mero_Doctor_Project.Controllers
         {
             _authDoctorRegistrationRepository = authDoctorRegistrationRepository;
         }
+
+        [HttpPost("doctorLogin")]
+        public async Task<ActionResult<ResponseModel<string>>> DoctorLoginAsync([FromBody] DoctorLoginDto loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _authDoctorRegistrationRepository.DoctorLoginAsync(loginDto);
+
+            if (result.Success)
+                return Ok(result);
+
+            return Unauthorized(result);
+        }
+
         [HttpPost("register-doctor")]
         public async Task<IActionResult> Register([FromBody] DoctorRegistrationDto dto)
         {

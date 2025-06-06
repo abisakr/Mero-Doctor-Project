@@ -301,6 +301,9 @@ namespace Mero_Doctor_Project.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
 
@@ -355,6 +358,7 @@ namespace Mero_Doctor_Project.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("LikeId");
@@ -733,7 +737,8 @@ namespace Mero_Doctor_Project.Migrations
                     b.HasOne("Mero_Doctor_Project.Models.ApplicationUser", "User")
                         .WithMany("Likes")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.Navigation("Blog");
 

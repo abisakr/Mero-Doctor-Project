@@ -8,22 +8,42 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Mero_Doctor_Project.Helper;
+using Mero_Doctor_Project.Hubs;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Configure the database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Configure Identity with Entity Framework stores
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
        .AddEntityFrameworkStores<ApplicationDbContext>()
        .AddDefaultTokenProviders();
 
-//Configure JWT authentication 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement{
+    {
+        new OpenApiSecurityScheme{
+            Reference = new OpenApiReference{
+                Id = "Bearer",
+                Type = ReferenceType.SecurityScheme
+            }
+        }, new List<string>()
+    }});
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -46,12 +66,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-// Map repositories to interfaces
 builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<UploadImageHelper>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
 builder.Services.AddScoped<IAuthDoctorRegistrationRepository, AuthDoctorRegistrationRepository>();
 builder.Services.AddScoped<IAuthPatientRegistrationRepository, AuthPatientRegistrationRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
@@ -60,42 +80,37 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IXRayRecordRepository, XRayRecordRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<IBlogCommentRepository, BlogCommentRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
-builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
-builder.Services.AddScoped<IDoctorWeeklyTimeRangeRepository, DoctorWeeklyTimeRangeRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-// Optional: Configure Kestrel to listen only on HTTP
 
-// Add CORS policy
+// CORS setup – add both if you're unsure which one is needed
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:52827"
-
-            )
-
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-            // Only needed if using cookies or auth headers
+            "http://localhost:52827",
+            "http://localhost:5173"
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader();
     });
 });
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Initialize roles and admin user
 await AppInitializer.InitializeAsync(app.Services);
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -108,5 +123,6 @@ app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 app.UseStaticFiles();
 app.Run();
