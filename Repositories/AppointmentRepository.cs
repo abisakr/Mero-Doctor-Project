@@ -83,7 +83,7 @@ namespace Mero_Doctor_Project.Repositories
                     DoctorId = dto.DoctorId,
                     PatientId = patient.PatientId,
                     DayOfWeek = dto.DayOfWeek,
-                    DateTime = dto.AppointmentDate,  // still needed for actual date
+                    DateTime = DateTime.UtcNow,  
                     StartTime = dto.StartTime,
                     EndTime = dto.EndTime,
                     Status = AppointmentStatus.Pending
