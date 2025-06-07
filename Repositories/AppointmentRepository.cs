@@ -203,7 +203,7 @@ namespace Mero_Doctor_Project.Repositories
                     StartTime = a.StartTime,
                     EndTime = a.EndTime,
                     AppointmentDate = a.DateTime,
-                    DoctorName = a.Doctor.User.FullName // assuming navigation through User
+                    DoctorName = a.Doctor.User.FullName 
                 }).ToList();
 
                 return new ResponseModel<List<AppointmentDto>>
