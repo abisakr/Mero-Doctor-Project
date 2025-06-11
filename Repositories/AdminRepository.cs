@@ -125,7 +125,6 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-
         public async Task<ResponseModel<List<DoctorInfoDto>>> GetPendingDoctorsAsync()
         {
             try

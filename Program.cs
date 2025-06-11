@@ -15,16 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Configure the database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Configure Identity with Entity Framework stores
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
        .AddEntityFrameworkStores<ApplicationDbContext>()
        .AddDefaultTokenProviders();
-//to test in swagger
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -48,8 +45,6 @@ builder.Services.AddSwaggerGen(c =>
     }});
 });
 
-//Configure JWT authentication 
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,8 +66,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-// Map repositories to interfaces
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<NotificationHelper>();
 builder.Services.AddScoped<UploadImageHelper>();
@@ -93,20 +86,16 @@ builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
-builder.Services.AddScoped<IDoctorWeeklyAvailabilityRepository, DoctorWeeklyAvailabilityRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Add CORS policy
+// CORS setup – add both if you're unsure which one is needed
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5000"
-            )
-
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.WithOrigins( "http://localhost:5000")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
 });
 
@@ -117,10 +106,8 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Initialize roles and admin user
 await AppInitializer.InitializeAsync(app.Services);
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
