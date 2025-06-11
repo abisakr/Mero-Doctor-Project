@@ -46,11 +46,17 @@ namespace Mero_Doctor_Project.Migrations
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -389,12 +395,6 @@ namespace Mero_Doctor_Project.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -472,8 +472,9 @@ namespace Mero_Doctor_Project.Migrations
                     b.Property<string>("GradCamUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("RecommendedHospital")
                         .IsRequired()
@@ -777,13 +778,13 @@ namespace Mero_Doctor_Project.Migrations
 
             modelBuilder.Entity("Mero_Doctor_Project.Models.XRayRecord", b =>
                 {
-                    b.HasOne("Mero_Doctor_Project.Models.Patient", "Patient")
+                    b.HasOne("Mero_Doctor_Project.Models.ApplicationUser", "User")
                         .WithMany("XRayRecords")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Patient");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -848,6 +849,8 @@ namespace Mero_Doctor_Project.Migrations
                     b.Navigation("Patients");
 
                     b.Navigation("RatingReviews");
+
+                    b.Navigation("XRayRecords");
                 });
 
             modelBuilder.Entity("Mero_Doctor_Project.Models.Blog", b =>
@@ -881,8 +884,6 @@ namespace Mero_Doctor_Project.Migrations
             modelBuilder.Entity("Mero_Doctor_Project.Models.Patient", b =>
                 {
                     b.Navigation("Appointments");
-
-                    b.Navigation("XRayRecords");
                 });
 
             modelBuilder.Entity("Mero_Doctor_Project.Models.Specialization", b =>

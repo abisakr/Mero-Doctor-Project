@@ -8,7 +8,7 @@ namespace Mero_Doctor_Project.Models
         public int XRayRecordId { get; set; } // Standardized property name
 
         [Required]
-        public int PatientId { get; set; }
+        public string PatientId { get; set; }
 
         [Required]
         [Url]
@@ -26,7 +26,7 @@ namespace Mero_Doctor_Project.Models
 
         public DateTime DateTime { get; set; }
 
-        public Patient Patient { get; set; } // Navigation property
+        public ApplicationUser User { get; set; } // Navigation property
 
     }
 }

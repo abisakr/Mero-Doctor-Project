@@ -34,7 +34,11 @@ namespace Mero_Doctor_Project.DTOs.AuthDto
 
         [Required]
         public int SpecializationId { get; set; } //GETS FROM DCOTOR REGISTRATION UI FROM SPECILIZATION DROPDOWN
+        [Required]
+        public double Latitude { get; set; }
 
+        [Required]
+        public double Longitude { get; set; }
         [Required]
         [MinLength(6)]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d).{6,}$", ErrorMessage = "Password must be at least 6 characters long and contain at least one uppercase letter and one number.")]

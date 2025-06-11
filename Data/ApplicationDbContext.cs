@@ -61,7 +61,12 @@ namespace Mero_Doctor_Project.Data
                 .WithOne(rr => rr.User)
                 .HasForeignKey(rr => rr.UserId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deleting user if they have reviews
-
+          
+            modelBuilder.Entity<ApplicationUser>()
+              .HasMany(p => p.XRayRecords)
+              .WithOne(x => x.User)
+              .HasForeignKey(x => x.PatientId)
+              .OnDelete(DeleteBehavior.Cascade); // Delete X-ray records if patient is deleted
             // Doctor Relationships
             modelBuilder.Entity<Doctor>()
                 .HasOne(d => d.Specialization)
@@ -100,11 +105,7 @@ namespace Mero_Doctor_Project.Data
                 .HasForeignKey(a => a.PatientId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deleting patient if appointments exist
 
-            modelBuilder.Entity<Patient>()
-                .HasMany(p => p.XRayRecords)
-                .WithOne(x => x.Patient)
-                .HasForeignKey(x => x.PatientId)
-                .OnDelete(DeleteBehavior.Cascade); // Delete X-ray records if patient is deleted
+          
 
             // Appointment Relationships
             // Already covered under Doctor and Patient (no additional configuration needed)

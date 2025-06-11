@@ -19,13 +19,7 @@ namespace Mero_Doctor_Project.Models
     [StringLength(100)]
     public string Address { get; set; }
 
-    [Required]
-    public double Latitude { get; set; } // Required for location
-    [Required]
-    public double Longitude { get; set; } // Required for location
-
     public ApplicationUser User { get; set; } // Navigation property
     public ICollection<Appointment> Appointments { get; set; } // Navigation property for appointments
-    public ICollection<XRayRecord> XRayRecords { get; set; }
     }
 }
