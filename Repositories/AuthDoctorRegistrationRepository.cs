@@ -85,6 +85,8 @@ namespace Mero_Doctor_Project.Repositories
                     FullName = dto.FullName,
                     Email = dto.Email,
                     PhoneNumber = dto.PhoneNumber,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude
                 };
 
                 var userResult = await _userManager.CreateAsync(user, dto.Password);

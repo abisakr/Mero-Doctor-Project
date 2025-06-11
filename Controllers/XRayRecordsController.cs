@@ -23,6 +23,8 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<IActionResult> DetectPneumonia([FromForm] DetectPneumoniaDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
             var result = await _xRayRecordRepository.DetectPneumonia(dto.XRayImage, userId);
             return Ok(result);
         }

@@ -7,7 +7,7 @@
             public DayOfWeek DayOfWeek { get; set; } // Comes directly from UI selection
             public TimeOnly StartTime { get; set; }
             public TimeOnly EndTime { get; set; }
-        
+            public DateTime AppointmentDate { get; set; }
 
     }
 }
