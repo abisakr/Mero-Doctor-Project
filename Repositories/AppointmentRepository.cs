@@ -5,6 +5,7 @@ using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Mero_Doctor_Project.DTOs.AppointmentDto;
+using payment_gateway_nepal;
 
 namespace Mero_Doctor_Project.Repositories
 {
@@ -20,45 +21,25 @@ namespace Mero_Doctor_Project.Repositories
             try
             {
                 var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
-                if (patient == null)
-                {
-                    return new ResponseModel<string>
-                    {
-                        Success = false,
-                        Message = "Patient not found.",
-                        Data = null
-                    };
-                }
+                if (patient == null) return new ResponseModel<string> { Success = true, Message = "Patient not found.", Data = null };
 
-                // Use the DayOfWeek coming directly from the UI
                 var availability = await _context.DoctorWeeklyAvailabilities
                     .Include(a => a.TimeRanges)
                     .FirstOrDefaultAsync(a => a.DoctorId == dto.DoctorId && a.DayOfWeek == dto.DayOfWeek);
 
-                if (availability == null)
-                {
-                    return new ResponseModel<string>
-                    {
-                        Success = false,
-                        Message = "Doctor is not available on the selected day.",
-                        Data = null
-                    };
-                }
+                if (availability == null) return new ResponseModel<string> { Success = true, Message = "Doctor not available on selected day.", Data = null };
 
                 var matchingTimeRange = availability.TimeRanges.FirstOrDefault(tr =>
                     tr.IsAvailable &&
                     dto.StartTime >= tr.StartTime &&
                     dto.EndTime <= tr.EndTime);
 
-                if (matchingTimeRange == null)
+                if (matchingTimeRange == null) return new ResponseModel<string>
                 {
-                    return new ResponseModel<string>
-                    {
-                        Success = false,
-                        Message = "Selected time slot is not available.",
-                        Data = null
-                    };
-                }
+                    Success = true,
+                    Message = "Time slot not available.",
+                    Data = null
+                };
 
                 bool hasConflict = await _context.Appointments.AnyAsync(a =>
                     a.DoctorId == dto.DoctorId &&
@@ -66,27 +47,28 @@ namespace Mero_Doctor_Project.Repositories
                     ((dto.StartTime >= a.StartTime && dto.StartTime < a.EndTime) ||
                      (dto.EndTime > a.StartTime && dto.EndTime <= a.EndTime)));
 
-                if (hasConflict)
+                if (hasConflict) return new ResponseModel<string>
                 {
-                    return new ResponseModel<string>
-                    {
-                        Success = false,
-                        Message = "Selected time slot is already booked.",
-                        Data = null
-                    };
-                }
+                    Success = true,
+                    Message = "Slot already booked.",
+                    Data = null
+                };
 
-                matchingTimeRange.IsAvailable = false;
+                string transactionId = $"tx-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+                decimal price = 1000; 
 
                 var appointment = new Appointment
                 {
                     DoctorId = dto.DoctorId,
                     PatientId = patient.PatientId,
                     DayOfWeek = dto.DayOfWeek,
-                    DateTime = DateTime.UtcNow,  
+                    DateTime = DateTime.UtcNow,
                     StartTime = dto.StartTime,
                     EndTime = dto.EndTime,
-                    Status = AppointmentStatus.Pending
+                    Status = AppointmentStatus.Pending,
+                    Price = price,
+                    TransactionId = transactionId,
+                    TransactionStatus = "Pending"
                 };
 
                 _context.Appointments.Add(appointment);
@@ -95,20 +77,21 @@ namespace Mero_Doctor_Project.Repositories
                 return new ResponseModel<string>
                 {
                     Success = true,
-                    Message = "Appointment booked successfully.",
-                    Data = null
+                    Message = "Appointment created. Proceed with payment.",
+                    Data = transactionId
                 };
             }
             catch (Exception ex)
             {
                 return new ResponseModel<string>
                 {
-                    Success = false,
+                    Success = true,
                     Message = $"Error: {ex.Message}",
                     Data = null
-                };
+                }; 
             }
         }
+
 
 
         public async Task<ResponseModel<string>> UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto dto, string doctorUserId)

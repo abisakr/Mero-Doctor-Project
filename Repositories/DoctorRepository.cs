@@ -11,5 +11,8 @@ namespace Mero_Doctor_Project.Repositories
             _context = context;
         }
         // Implement methods for doctor management here
+        //find doctor by Doctorid 
+        //find /filter  doctor by specialization or name 
+   
     }
 }

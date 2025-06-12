@@ -6,6 +6,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.BearerToken;
+using Mero_Doctor_Project.Models.Enums;
+using Microsoft.EntityFrameworkCore;
+using payment_gateway_nepal;
+using Mero_Doctor_Project.Data;
+using Mero_Doctor_Project.Models;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using static payment_gateway_nepal.ApiEndPoints;
+using System.Diagnostics.Metrics;
+using System.Drawing;
+using System.Net.WebSockets;
+using System.Runtime.Intrinsics.X86;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -14,30 +25,25 @@ namespace Mero_Doctor_Project.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly ApplicationDbContext _context;
 
-        public AppointmentsController(IAppointmentRepository appointmentRepository)
+        public AppointmentsController(IAppointmentRepository appointmentRepository,ApplicationDbContext context)
         {
             _appointmentRepository = appointmentRepository;
+            _context =context;
         }
 
         [HttpPost("bookAppointment")]
         public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentDto dto)
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (userId == null)
-            {
-                return Unauthorized(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "Unauthorized: user ID not found",
-                    Data = null
-                });
-            }
+                return Unauthorized();
 
             var result = await _appointmentRepository.BookAppointmentAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
 
         [HttpPut("update-status")]
         //[Authorize(Roles = "Doctor")]
@@ -90,5 +96,39 @@ namespace Mero_Doctor_Project.Controllers
 
             return Ok(result);
         }
+
+
+        [HttpPost("confirm-payment")]
+        public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationDto dto)
+        {
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
+            if (appointment == null) return NotFound("Appointment not found");
+
+            appointment.Status = AppointmentStatus.Accepted;
+            appointment.TransactionStatus = "Complete";
+            appointment.PaymentDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok("Payment confirmed");
+        }
+
+
+        [HttpPost("fail-payment")]
+        public async Task<IActionResult> FailPayment([FromBody] PaymentConfirmationDto dto)
+        {
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
+
+            if (appointment == null)
+                return NotFound("Appointment not found");
+
+            appointment.Status = AppointmentStatus.Rejected;
+            appointment.TransactionStatus = "Failed";
+            await _context.SaveChangesAsync();
+
+            return Ok("Payment marked as failed");
+        }
+
+
     }
 }
