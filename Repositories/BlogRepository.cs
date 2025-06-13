@@ -1,5 +1,6 @@
 ﻿using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.DTOs.BlogsDto;
+using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Repositories.Interfaces;
@@ -10,9 +11,13 @@ namespace Mero_Doctor_Project.Repositories
     public class BlogRepository : IBlogRepository
     {
         private readonly ApplicationDbContext _context;
-        public BlogRepository(ApplicationDbContext context)
+
+        private readonly UploadImageHelper _uploadImageHelper;
+
+        public BlogRepository(ApplicationDbContext context, UploadImageHelper uploadImageHelper)
         {
             _context = context;
+            _uploadImageHelper = uploadImageHelper;
         }
         public async Task<ResponseModel<string>> AddAsync(BlogAddDto dto, string userId)
         {
@@ -24,11 +29,14 @@ namespace Mero_Doctor_Project.Repositories
                 var category = await _context.Categories.FindAsync(dto.CategoryId);
                     if (category == null)
                     return new ResponseModel<string> { Success = false, Message = "Category not found" };
+
+                var savedImageUrl = await _uploadImageHelper.UploadImageAsync(dto.BlogPictureUrl, "blogs-images");
                 var blog = new Blog
                 {
                     Title = dto.Title,
                     Content = dto.Content,
                     CreatedDate = DateTime.UtcNow,
+                    BlogPictureUrl = savedImageUrl,
                     DoctorId = doctor.DoctorId,
                     CategoryId = dto.CategoryId
                 };
@@ -55,9 +63,11 @@ namespace Mero_Doctor_Project.Repositories
                 var blog = await _context.Blogs.FirstOrDefaultAsync(b => b.BlogId == dto.BlogId && b.DoctorId == doctor.DoctorId);
                 if (blog == null)
                     return new ResponseModel<string> { Success = false, Message = "Blog not found or unauthorized" };
-
+                var newImageUrl = await _uploadImageHelper.ReplaceImageAsync("blogs-images",blog.BlogPictureUrl, dto.BlogPictureUrl);
+             
                 blog.Title = dto.Title;
                 blog.Content = dto.Content;
+                blog.BlogPictureUrl = newImageUrl;
                 blog.CategoryId = dto.CategoryId;
                 await _context.SaveChangesAsync();
 
@@ -112,6 +122,7 @@ namespace Mero_Doctor_Project.Repositories
                     CreatedDate = blog.CreatedDate,
                     CategoryName = blog.Category?.Name,
                     DoctorName = blog.Doctor?.User?.FullName,
+                    BlogPictureUrl=blog.BlogPictureUrl,
                     TotalLikes = blog.Likes?.Count ?? 0
                 };
 
@@ -144,11 +155,12 @@ namespace Mero_Doctor_Project.Repositories
                         CreatedDate = blog.CreatedDate,
                         CategoryName = blog.Category?.Name,
                         DoctorName = blog.Doctor?.User?.FullName,
+                        BlogPictureUrl = blog.BlogPictureUrl,
                         TotalLikes = blog.Likes?.Count ?? 0
                     }).ToList()
                 };
 
-                return new ResponseModel<BlogGetAllDto> { Success = true, Data = dto };
+                return new ResponseModel<BlogGetAllDto> { Success = true, Message = "Blog fetched Successfully.", Data = dto };
             }
             catch (Exception ex)
             {
@@ -181,11 +193,12 @@ namespace Mero_Doctor_Project.Repositories
                         CreatedDate = blog.CreatedDate,
                         CategoryName = blog.Category?.Name,
                         DoctorName = doctor.User?.FullName,
+                        BlogPictureUrl = blog.BlogPictureUrl,
                         TotalLikes = blog.Likes?.Count ?? 0
                     }).ToList()
                 };
 
-                return new ResponseModel<BlogGetAllDto> { Success = true, Data = dto };
+                return new ResponseModel<BlogGetAllDto> { Success = true, Message = "Blogs fetched Successfully.", Data = dto };
             }
             catch (Exception ex)
             {

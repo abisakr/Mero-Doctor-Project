@@ -20,7 +20,7 @@ namespace Mero_Doctor_Project.Controllers
 
         [HttpPost("Add")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> AddBlog([FromBody] BlogAddDto dto)
+        public async Task<IActionResult> AddBlog( [FromForm] BlogAddDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _blogRepository.AddAsync(dto, userId);
@@ -33,7 +33,7 @@ namespace Mero_Doctor_Project.Controllers
 
         [HttpPut("Update")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> UpdateBlog([FromBody] BlogUpdateDto dto)
+        public async Task<IActionResult> UpdateBlog([FromForm] BlogUpdateDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _blogRepository.UpdateAsync(dto, userId);

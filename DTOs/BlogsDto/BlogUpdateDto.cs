@@ -16,5 +16,7 @@ namespace Mero_Doctor_Project.DTOs.BlogsDto
 
         [Required]
         public string Content { get; set; }
+      
+        public IFormFile BlogPictureUrl { get; set; }
     }
 }

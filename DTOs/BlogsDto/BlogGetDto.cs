@@ -8,8 +8,9 @@ namespace Mero_Doctor_Project.DTOs.BlogsDto
         public string Title { get; set; }
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
-        public string CategoryName { get; set; }      // from Category.Name
-        public string DoctorName { get; set; }        // from Doctor.User.FullName
+        public string CategoryName { get; set; }   
+        public string DoctorName { get; set; }    
+        public string BlogPictureUrl { get; set; }
         public int TotalLikes { get; set; }
     }
 }

@@ -19,7 +19,8 @@ namespace Mero_Doctor_Project.Models
 
         [Required]
         public string Content { get; set; }
-
+        [Url]
+        public string BlogPictureUrl { get; set; }
         public DateTime CreatedDate { get; set; }
 
         public Doctor Doctor { get; set; } // Navigation property
