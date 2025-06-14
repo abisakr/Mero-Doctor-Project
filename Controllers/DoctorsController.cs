@@ -13,10 +13,12 @@ namespace Mero_Doctor_Project.Controllers
     public class DoctorController : ControllerBase
     {
         private readonly IDoctorWeeklyAvailabilityRepository _doctorAvailabilityRepository;
+        private readonly IDoctorRepository _doctor;
 
-        public DoctorController(IDoctorWeeklyAvailabilityRepository doctorAvailabilityRepository)
+        public DoctorController(IDoctorWeeklyAvailabilityRepository doctorAvailabilityRepository,IDoctorRepository doctor)
         {
             _doctorAvailabilityRepository = doctorAvailabilityRepository;
+            _doctor = doctor;
         }
 
         [HttpPost("SetAvailability")]
@@ -58,7 +60,7 @@ namespace Mero_Doctor_Project.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        //[Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         [HttpDelete("delete-time-range")]
         public async Task<IActionResult> DeleteTimeRange([FromBody] DeleteTimeRangeDto dto)
         {
@@ -66,6 +68,49 @@ namespace Mero_Doctor_Project.Controllers
             //var userId = "e6e43d3a-f925-44df-ba94-a84e1dd61157";
             var result = await _doctorAvailabilityRepository.DeleteDoctorTimeRangeAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("getDoctorById/{userId}")]
+        public async Task<IActionResult> GetDoctorById(string userId)
+        {
+            var response = await _doctor.GetDoctorByIdAsync(userId);
+            if (!response.Success)
+                return NotFound(response);
+            return Ok(response);
+        }
+
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        [HttpGet("fetchDoctorOwnDetails")]
+        public async Task<IActionResult> FetchDoctorOwnDetails()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Please Login as Doctor.");
+            var response = await _doctor.GetDoctorByIdAsync(userId);
+            if (!response.Success)
+                return NotFound(response);
+            return Ok(response);
+        }
+   
+        [HttpGet("filter")]
+        public async Task<IActionResult> GetDoctorsByFilter([FromQuery] int? specializationId, [FromQuery] string? doctorName)
+        {
+            var response = await _doctor.GetDoctorsByFilterAsync(specializationId, doctorName);
+            if (!response.Success || response.Data == null || response.Data.Count == 0)
+                return NotFound(response);
+            return Ok(response);
+        }
+        [HttpGet("getAllDoctors")]
+        public async Task<IActionResult> GetAllDoctors()
+        {
+            var doctors = await _doctor.GetAllDoctorsAsync();
+
+            if (doctors.Data.Count==0)
+            {
+                return NotFound(doctors);
+            }
+
+            return Ok(doctors);
         }
     }
 }

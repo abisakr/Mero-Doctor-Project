@@ -1,5 +1,4 @@
-﻿
-
+﻿using Mero_Doctor_Project.DTOs.DoctorDto;
 using Mero_Doctor_Project.Models.Common;
 
 namespace Mero_Doctor_Project.Repositories.Interfaces
@@ -7,9 +6,9 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
     public interface IDoctorRepository
     {
         //find doctor by Doctorid 
-      //  Task<ResponseModel<string>> GetDoctorByIdAsync(string doctorId);
-        //find /filter  doctor by specialization or name 
-        //Task<ResponseModel<List<string>>> GetDoctorsBySpecializationIdAsync(int specializationId);
-        //Task<ResponseModel<List<string>>> GetDoctorsByNameAsync(string specialization);
+        Task<ResponseModel<GetDoctorDto>> GetDoctorByIdAsync(string userId);
+        Task<ResponseModel<List<GetDoctorDto>>> GetDoctorsByFilterAsync(int? specializationId, string? doctorName);
+        Task<ResponseModel<List<GetDoctorDto>>> GetAllDoctorsAsync();
+
     }
 }
