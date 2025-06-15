@@ -23,7 +23,7 @@ namespace Mero_Doctor_Project.Controllers
 
         // GET: api/Specialization
         [HttpGet("getAllSpecialization")]
-        public async Task<ActionResult<ResponseModel<List<SpecializationDto>>>> GetAll()
+        public async Task<ActionResult<ResponseModel<List<SetSpecializationDto>>>> GetAll()
         {
             var result = await _specializationRepository.GetAllAsync();
             if (result.Success)
@@ -34,7 +34,7 @@ namespace Mero_Doctor_Project.Controllers
 
         // GET: api/Specialization/5
         [HttpGet("getById{id}")]
-        public async Task<ActionResult<ResponseModel<SpecializationDto>>> GetById(int id)
+        public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> GetById(int id)
         {
             var result = await _specializationRepository.GetByIdAsync(id);
             if (result.Success)
@@ -45,7 +45,7 @@ namespace Mero_Doctor_Project.Controllers
 
         // POST: api/Specialization
         [HttpPost("Add")]
-        public async Task<ActionResult<ResponseModel<SpecializationDto>>> Add([FromBody] SpecializationDto specializationDto)
+        public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> Add([FromBody] SetSpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
             {
@@ -61,7 +61,7 @@ namespace Mero_Doctor_Project.Controllers
 
         // PUT: api/Specialization/5
         [HttpPut("Update{id}")]
-        public async Task<ActionResult<ResponseModel<SpecializationDto>>> Update(int id, [FromBody] SpecializationDto specializationDto)
+        public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> Update(int id, [FromBody] SetSpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
             {

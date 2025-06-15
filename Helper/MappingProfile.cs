@@ -9,8 +9,9 @@ namespace Mero_Doctor_Project.Helper
     {
         public MappingProfile()
         {
-            CreateMap<Specialization, SpecializationDto>().ReverseMap();
-           
+            CreateMap<Specialization, SetSpecializationDto>().ReverseMap();
+            CreateMap<Specialization, GetSpecializationDto>().ReverseMap();
+
         }
     }
 

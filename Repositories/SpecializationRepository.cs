@@ -19,14 +19,14 @@ namespace Mero_Doctor_Project.Repositories
             _mapper = mapper;
         }
 
-        public async Task<ResponseModel<List<SpecializationDto>>> GetAllAsync()
+        public async Task<ResponseModel<List<GetSpecializationDto>>> GetAllAsync()
         {
             try
             {
                 var specializations = await _dbSet.ToListAsync();
-                var dtoList = _mapper.Map<List<SpecializationDto>>(specializations);
+                var dtoList = _mapper.Map<List<GetSpecializationDto>>(specializations);
 
-                return new ResponseModel<List<SpecializationDto>>
+                return new ResponseModel<List<GetSpecializationDto>>
                 {
                     Success = true,
                     Message = "Fetched all",
@@ -35,7 +35,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<SpecializationDto>>
+                return new ResponseModel<List<GetSpecializationDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -44,14 +44,14 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<SpecializationDto>> GetByIdAsync(int id)
+        public async Task<ResponseModel<GetSpecializationDto>> GetByIdAsync(int id)
         {
             try
             {
                 var specialization = await _dbSet.FindAsync(id);
                 if (specialization == null)
                 {
-                    return new ResponseModel<SpecializationDto>
+                    return new ResponseModel<GetSpecializationDto>
                     {
                         Success = false,
                         Message = "Not found",
@@ -59,8 +59,8 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                var dto = _mapper.Map<SpecializationDto>(specialization);
-                return new ResponseModel<SpecializationDto>
+                var dto = _mapper.Map<GetSpecializationDto>(specialization);
+                return new ResponseModel<GetSpecializationDto>
                 {
                     Success = true,
                     Message = "Found",
@@ -69,7 +69,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<SpecializationDto>
+                return new ResponseModel<GetSpecializationDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -78,7 +78,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<SpecializationDto>> AddAsync(SpecializationDto dto)
+        public async Task<ResponseModel<SetSpecializationDto>> AddAsync(SetSpecializationDto dto)
         {
             try
             {
@@ -86,8 +86,8 @@ namespace Mero_Doctor_Project.Repositories
                 await AddAsync(specialization);
                 await SaveChangesAsync();
 
-                var resultDto = _mapper.Map<SpecializationDto>(specialization);
-                return new ResponseModel<SpecializationDto>
+                var resultDto = _mapper.Map<SetSpecializationDto>(specialization);
+                return new ResponseModel<SetSpecializationDto>
                 {
                     Success = true,
                     Message = "Created",
@@ -96,7 +96,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<SpecializationDto>
+                return new ResponseModel<SetSpecializationDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -105,14 +105,14 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<SpecializationDto>> UpdateAsync(int id, SpecializationDto dto)
+        public async Task<ResponseModel<SetSpecializationDto>> UpdateAsync(int id, SetSpecializationDto dto)
         {
             try
             {
                 var specialization = await _dbSet.FindAsync(id);
                 if (specialization == null)
                 {
-                    return new ResponseModel<SpecializationDto>
+                    return new ResponseModel<SetSpecializationDto>
                     {
                         Success = false,
                         Message = "Not found",
@@ -125,8 +125,8 @@ namespace Mero_Doctor_Project.Repositories
                 Update(specialization);
                 await SaveChangesAsync();
 
-                var resultDto = _mapper.Map<SpecializationDto>(specialization);
-                return new ResponseModel<SpecializationDto>
+                var resultDto = _mapper.Map<SetSpecializationDto>(specialization);
+                return new ResponseModel<SetSpecializationDto>
                 {
                     Success = true,
                     Message = "Updated",
@@ -135,7 +135,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<SpecializationDto>
+                return new ResponseModel<SetSpecializationDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",

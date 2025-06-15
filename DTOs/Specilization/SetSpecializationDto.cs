@@ -2,7 +2,7 @@
 
 namespace Mero_Doctor_Project.DTOs.Specilization
 {
-    public class SpecializationDto
+    public class SetSpecializationDto
     {
         [Required]
         [StringLength(20)]

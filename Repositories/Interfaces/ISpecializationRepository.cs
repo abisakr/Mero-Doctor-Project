@@ -6,10 +6,10 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
 {
     public interface ISpecializationRepository
     {
-        Task<ResponseModel<List<SpecializationDto>>> GetAllAsync();
-        Task<ResponseModel<SpecializationDto>> GetByIdAsync(int id);
-        Task<ResponseModel<SpecializationDto>> AddAsync(SpecializationDto dto);
-        Task<ResponseModel<SpecializationDto>> UpdateAsync(int id, SpecializationDto dto);
+        Task<ResponseModel<List<GetSpecializationDto>>> GetAllAsync();
+        Task<ResponseModel<GetSpecializationDto>> GetByIdAsync(int id);
+        Task<ResponseModel<SetSpecializationDto>> AddAsync(SetSpecializationDto dto);
+        Task<ResponseModel<SetSpecializationDto>> UpdateAsync(int id, SetSpecializationDto dto);
         Task<ResponseModel<bool>> DeleteAsync(int id);
     }
 }
