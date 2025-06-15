@@ -6,10 +6,10 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
 {
     public interface IAdminRepository
     {
-        public Task<ResponseModel<DoctorInfoDto>> VerifyDoctorAsync(int id, DoctorStatus status);
-        public Task<ResponseModel<List<DoctorInfoDto>>> GetVerifiedDoctorsAsync();
-        public Task<ResponseModel<List<DoctorInfoDto>>> GetPendingDoctorsAsync();
-        public Task<ResponseModel<List<DoctorInfoDto>>> GetRejectedDoctorsAsync();
+        public Task<ResponseModel<UpdateDoctorInfoDto>> VerifyDoctorAsync(int id, DoctorStatus status);
+        public Task<ResponseModel<List<GetDoctorInfoDto>>> GetVerifiedDoctorsAsync();
+        public Task<ResponseModel<List<GetDoctorInfoDto>>> GetPendingDoctorsAsync();
+        public Task<ResponseModel<List<GetDoctorInfoDto>>> GetRejectedDoctorsAsync();
     }
 
 }

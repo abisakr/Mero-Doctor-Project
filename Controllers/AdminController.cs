@@ -21,7 +21,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpPut("verify/{id}")]
-        public async Task<ActionResult<ResponseModel<DoctorInfoDto>>> VerifyDoctor(int id, [FromBody] DoctorStatus status)
+        public async Task<ActionResult<ResponseModel<UpdateDoctorInfoDto>>> VerifyDoctor(int id, [FromBody] DoctorStatus status)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -44,7 +44,7 @@ namespace Mero_Doctor_Project.Controllers
 
 
         [HttpGet("verified")]
-        public async Task<ActionResult<ResponseModel<List<DoctorInfoDto>>>> GetVerifiedDoctors()
+        public async Task<ActionResult<ResponseModel<List<GetDoctorInfoDto>>>> GetVerifiedDoctors()
         {
             var result = await _adminRepository.GetVerifiedDoctorsAsync();
             if (result.Success)
@@ -54,7 +54,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpGet("pending")]
-        public async Task<ActionResult<ResponseModel<List<DoctorInfoDto>>>> GetPendingDoctors()
+        public async Task<ActionResult<ResponseModel<List<GetDoctorInfoDto>>>> GetPendingDoctors()
         {
             var result = await _adminRepository.GetPendingDoctorsAsync();
             if (result.Success)
@@ -64,7 +64,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpGet("rejected")]
-        public async Task<ActionResult<ResponseModel<List<DoctorInfoDto>>>> GetRejectedDoctors()
+        public async Task<ActionResult<ResponseModel<List<GetDoctorInfoDto>>>> GetRejectedDoctors()
         {
             var result = await _adminRepository.GetRejectedDoctorsAsync();
             if (result.Success)

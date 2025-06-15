@@ -14,16 +14,16 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        public async Task<ResponseModel<string>> SetDoctorAvailabilityAsync(DoctorAvailabilityDto dto)
+        public async Task<ResponseModel<string>> SetDoctorAvailabilityAsync(SetDoctorAvailabilityDto dto,string userId)
         {
             try
             {
                 foreach (var dayAvailability in dto.Availabilities)
                 {
                     var existingDay = await _context.DoctorWeeklyAvailabilities
-                        .Include(d => d.TimeRanges)
+                        .Include(d => d.TimeRanges).Include(d=>d.Doctor)
                         .FirstOrDefaultAsync(d =>
-                            d.DoctorId == dto.DoctorId && d.DayOfWeek == dayAvailability.DayOfWeek);
+                            d.Doctor.UserId == userId && d.DayOfWeek == dayAvailability.DayOfWeek);
 
                     if (existingDay != null)
                     {
@@ -68,10 +68,13 @@ namespace Mero_Doctor_Project.Repositories
                                 IsAvailable = true
                             });
                         }
-
+                        var doctorId= _context.Doctors
+                            .Where(d => d.UserId == userId)
+                            .Select(d => d.DoctorId)
+                            .FirstOrDefault();  
                         var newDay = new DoctorWeeklyAvailability
                         {
-                            DoctorId = dto.DoctorId,
+                            DoctorId = doctorId,
                             DayOfWeek = dayAvailability.DayOfWeek,
                             TimeRanges = validTimeRanges
                         };
@@ -102,18 +105,19 @@ namespace Mero_Doctor_Project.Repositories
 
 
 
-        public async Task<ResponseModel<DoctorAvailabilityDto>> GetDoctorAvailabilityAsync(int doctorId)
+        public async Task<ResponseModel<GetDoctorAvailabilityDto>> GetDoctorAvailabilityAsync(string doctorId)
         {
             try
             {
                 var availabilities = await _context.DoctorWeeklyAvailabilities
-                    .Where(a => a.DoctorId == doctorId)
-                    .Include(a => a.TimeRanges)
+                    .Where(a => a.Doctor.UserId == doctorId)
+                    .Include(a => a.Doctor).
+                     Include(a => a.TimeRanges)
                     .ToListAsync();
 
                 if (!availabilities.Any())
                 {
-                    return new ResponseModel<DoctorAvailabilityDto>
+                    return new ResponseModel<GetDoctorAvailabilityDto>
                     {
                         Success = false,
                         Message = "No availability found for this doctor.",
@@ -121,12 +125,12 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                var dto = new DoctorAvailabilityDto
+                var dto = new GetDoctorAvailabilityDto
                 {
                     DoctorId = doctorId,
-                    Availabilities = availabilities.Select(a => new DayAvailabilityDto
+                    Availabilities = availabilities.Select(a => new GetDayAvailabilityDto
                     {
-                        DayOfWeek = a.DayOfWeek,
+                        DayOfWeek = a.DayOfWeek.ToString(),
                         TimeRanges = a.TimeRanges.Select(tr => new TimeRangeDto
                         {
                             StartTime = tr.StartTime,
@@ -136,7 +140,7 @@ namespace Mero_Doctor_Project.Repositories
                     }).ToList()
                 };
 
-                return new ResponseModel<DoctorAvailabilityDto>
+                return new ResponseModel<GetDoctorAvailabilityDto>
                 {
                     Success = true,
                     Message = "Doctor availability fetched successfully.",
@@ -145,7 +149,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<DoctorAvailabilityDto>
+                return new ResponseModel<GetDoctorAvailabilityDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",

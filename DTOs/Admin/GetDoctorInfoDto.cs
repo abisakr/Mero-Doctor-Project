@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Mero_Doctor_Project.Models.Enums;
+﻿using Mero_Doctor_Project.Models.Enums;
 
 namespace Mero_Doctor_Project.DTOs.Admin
 {
-    public class DoctorInfoDto
+    public class GetDoctorInfoDto
     {
-        public string UserId { get; set; }  
+        public int DoctorId { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
@@ -14,7 +13,6 @@ namespace Mero_Doctor_Project.DTOs.Admin
         public string RegistrationId { get; set; }
         public string ClinicAddress { get; set; }
         public string Specialization { get; set; }
-        public DoctorStatus status{ get; set; }
-
+        public string Status { get; set; }
     }
 }

@@ -18,14 +18,14 @@ namespace Mero_Doctor_Project.Repositories
             _mapper = mapper;
         }
 
-        public async Task<ResponseModel<DoctorInfoDto>> VerifyDoctorAsync(int id, DoctorStatus status)
+        public async Task<ResponseModel<UpdateDoctorInfoDto>> VerifyDoctorAsync(int id, DoctorStatus status)
         {
             try
             {
                 var doctor = await _dbSet.FindAsync(id);
                 if (doctor == null)
                 {
-                    return new ResponseModel<DoctorInfoDto>
+                    return new ResponseModel<UpdateDoctorInfoDto>
                     {
                         Success = false,
                         Message = "Doctor not found",
@@ -35,7 +35,7 @@ namespace Mero_Doctor_Project.Repositories
 
                 if (doctor.Status == DoctorStatus.Verified)
                 {
-                    return new ResponseModel<DoctorInfoDto>
+                    return new ResponseModel<UpdateDoctorInfoDto>
                     {
                         Success = false,
                         Message = "Doctor already verified",
@@ -45,7 +45,7 @@ namespace Mero_Doctor_Project.Repositories
 
                 if (doctor.Status == DoctorStatus.Rejected)
                 {
-                    return new ResponseModel<DoctorInfoDto>
+                    return new ResponseModel<UpdateDoctorInfoDto>
                     {
                         Success = false,
                         Message = "Doctor is rejected",
@@ -57,16 +57,16 @@ namespace Mero_Doctor_Project.Repositories
                 Update(doctor);
                 await SaveChangesAsync();
 
-                return new ResponseModel<DoctorInfoDto>
+                return new ResponseModel<UpdateDoctorInfoDto>
                 {
                     Success = true,
                     Message = $"Doctor status updated to: {status}",
-                    Data = new DoctorInfoDto { UserId = doctor.UserId }
+                    Data = new UpdateDoctorInfoDto { UserId = doctor.UserId }
                 };
             }
             catch (Exception ex)
             {
-                return new ResponseModel<DoctorInfoDto>
+                return new ResponseModel<UpdateDoctorInfoDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -75,7 +75,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<DoctorInfoDto>>> GetVerifiedDoctorsAsync()
+        public async Task<ResponseModel<List<GetDoctorInfoDto>>> GetVerifiedDoctorsAsync()
         {
             try
             {
@@ -83,8 +83,9 @@ namespace Mero_Doctor_Project.Repositories
                     .Include(d => d.Specialization)
                     .Include(d => d.User)
                     .Where(d => d.Status == DoctorStatus.Verified)
-                    .Select(d => new DoctorInfoDto
+                    .Select(d => new GetDoctorInfoDto
                     {
+                        DoctorId=d.DoctorId,
                         FullName = d.User.FullName,
                         Email = d.User.Email,
                         PhoneNumber = d.User.PhoneNumber,
@@ -93,13 +94,13 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        status=d.Status
+                        Status=d.Status.ToString()
                     })
                     .ToListAsync();
 
                 if (!verifiedDoctors.Any())
                 {
-                    return new ResponseModel<List<DoctorInfoDto>>
+                    return new ResponseModel<List<GetDoctorInfoDto>>
                     {
                         Success = false,
                         Message = "No verified doctors found",
@@ -107,7 +108,7 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = true,
                     Message = $"{verifiedDoctors.Count} verified doctor(s) found",
@@ -116,7 +117,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -125,7 +126,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<DoctorInfoDto>>> GetPendingDoctorsAsync()
+        public async Task<ResponseModel<List<GetDoctorInfoDto>>> GetPendingDoctorsAsync()
         {
             try
             {
@@ -133,8 +134,9 @@ namespace Mero_Doctor_Project.Repositories
                     .Include(d => d.Specialization)
                     .Include(d => d.User)
                     .Where(d => d.Status == DoctorStatus.Pending)
-                    .Select(d => new DoctorInfoDto
+                    .Select(d => new GetDoctorInfoDto
                     {
+                        DoctorId = d.DoctorId,
                         FullName = d.User.FullName,
                         Email = d.User.Email,
                         PhoneNumber = d.User.PhoneNumber,
@@ -143,13 +145,13 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        status = d.Status
+                        Status = d.Status.ToString()
                     })
                     .ToListAsync();
 
                 if (!pendingDoctors.Any())
                 {
-                    return new ResponseModel<List<DoctorInfoDto>>
+                    return new ResponseModel<List<GetDoctorInfoDto>>
                     {
                         Success = false,
                         Message = "No pending doctors found",
@@ -157,7 +159,7 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = true,
                     Message = $"{pendingDoctors.Count} pending doctor(s) found",
@@ -166,7 +168,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -176,7 +178,7 @@ namespace Mero_Doctor_Project.Repositories
         }
 
 
-        public async Task<ResponseModel<List<DoctorInfoDto>>> GetRejectedDoctorsAsync()
+        public async Task<ResponseModel<List<GetDoctorInfoDto>>> GetRejectedDoctorsAsync()
         {
             try
             {
@@ -184,8 +186,9 @@ namespace Mero_Doctor_Project.Repositories
                     .Include(d => d.Specialization)
                     .Include(d => d.User)
                     .Where(d => d.Status == DoctorStatus.Rejected)
-                    .Select(d => new DoctorInfoDto
+                    .Select(d => new GetDoctorInfoDto
                     {
+                        DoctorId = d.DoctorId,
                         FullName = d.User.FullName,
                         Email = d.User.Email,
                         PhoneNumber = d.User.PhoneNumber,
@@ -194,13 +197,13 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        status = d.Status
+                        Status = d.Status.ToString()
                     })
                     .ToListAsync();
 
                 if (!rejectedDoctors.Any())
                 {
-                    return new ResponseModel<List<DoctorInfoDto>>
+                    return new ResponseModel<List<GetDoctorInfoDto>>
                     {
                         Success = false,
                         Message = "No rejected doctors found",
@@ -208,7 +211,7 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = true,
                     Message = $"{rejectedDoctors.Count} rejected doctor(s) found",
@@ -217,7 +220,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<DoctorInfoDto>>
+                return new ResponseModel<List<GetDoctorInfoDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",

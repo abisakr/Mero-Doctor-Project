@@ -211,11 +211,11 @@ namespace Mero_Doctor_Project.Repositories
             try
             {
                 var appointments = await _context.Appointments
-      .Where(a => a.DoctorId == doctorId)
-      .Include(a => a.Patient)
-          .ThenInclude(p => p.User) // <-- This ensures Patient.User is loaded
-      .OrderByDescending(a => a.DateTime)
-      .ToListAsync();
+                       .Where(a => a.DoctorId == doctorId)
+                       .Include(a => a.Patient)
+                       .ThenInclude(p => p.User) 
+                       .OrderByDescending(a => a.DateTime)
+                       .ToListAsync();
 
 
                 var dtoList = appointments.Select(a => new AppointmentDto
@@ -227,7 +227,7 @@ namespace Mero_Doctor_Project.Repositories
                     StartTime = a.StartTime,
                     EndTime = a.EndTime,
                     AppointmentDate = a.DateTime,
-                    PatientName = a.Patient.User.FullName // assuming navigation through User
+                    PatientName = a.Patient.User.FullName 
                 }).ToList();
 
                 return new ResponseModel<List<AppointmentDto>>

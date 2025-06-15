@@ -46,7 +46,7 @@ namespace Mero_Doctor_Project.Controllers
 
 
         [HttpPut("update-status")]
-        //[Authorize(Roles = "Doctor")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         public async Task<IActionResult> UpdateAppointmentStatus([FromBody] UpdateAppointmentStatusDto dto)
         {
             string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -62,10 +62,12 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _appointmentRepository.UpdateAppointmentStatusAsync(dto, doctorUserId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
-        [HttpGet("doctor/{doctorId}")]
-        //[Authorize(Roles = "Doctor")]
+        [HttpGet("doctorAppointments/{doctorId}")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         public async Task<IActionResult> GetAppointmentsByDoctor(int doctorId)
         {
+            string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             var result = await _appointmentRepository.GetAppointmentsByDoctorAsync(doctorId);
             if (!result.Success)
                 return BadRequest(result);

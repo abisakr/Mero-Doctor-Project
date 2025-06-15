@@ -22,14 +22,15 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpPost("SetAvailability")]
-        public async Task<IActionResult> SetAvailability([FromBody] DoctorAvailabilityDto dto)
+        public async Task<IActionResult> SetAvailability([FromBody] SetDoctorAvailabilityDto dto)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid data.");
             }
 
-            var result = await _doctorAvailabilityRepository.SetDoctorAvailabilityAsync(dto);
+            var result = await _doctorAvailabilityRepository.SetDoctorAvailabilityAsync(dto,userId);
 
             if (result.Success)
             {
@@ -40,7 +41,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpGet("GetAvailability/{doctorId}")]
-        public async Task<IActionResult> GetAvailability(int doctorId)
+        public async Task<IActionResult> GetAvailability(string doctorId)
         {
             var result = await _doctorAvailabilityRepository.GetDoctorAvailabilityAsync(doctorId);
 
