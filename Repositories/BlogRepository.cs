@@ -122,6 +122,7 @@ namespace Mero_Doctor_Project.Repositories
                     CreatedDate = blog.CreatedDate,
                     CategoryName = blog.Category?.Name,
                     DoctorName = blog.Doctor?.User?.FullName,
+                    ProfilePicture=blog.Doctor.User.ProfilePictureUrl,
                     BlogPictureUrl=blog.BlogPictureUrl,
                     TotalLikes = blog.Likes?.Count ?? 0
                 };
@@ -155,6 +156,7 @@ namespace Mero_Doctor_Project.Repositories
                         CreatedDate = blog.CreatedDate,
                         CategoryName = blog.Category?.Name,
                         DoctorName = blog.Doctor?.User?.FullName,
+                        ProfilePicture = blog.Doctor.User.ProfilePictureUrl,
                         BlogPictureUrl = blog.BlogPictureUrl,
                         TotalLikes = blog.Likes?.Count ?? 0
                     }).ToList()
@@ -193,6 +195,7 @@ namespace Mero_Doctor_Project.Repositories
                         CreatedDate = blog.CreatedDate,
                         CategoryName = blog.Category?.Name,
                         DoctorName = doctor.User?.FullName,
+                        ProfilePicture = doctor.User.ProfilePictureUrl,
                         BlogPictureUrl = blog.BlogPictureUrl,
                         TotalLikes = blog.Likes?.Count ?? 0
                     }).ToList()

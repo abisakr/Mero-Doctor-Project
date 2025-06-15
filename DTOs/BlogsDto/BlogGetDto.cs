@@ -6,6 +6,7 @@ namespace Mero_Doctor_Project.DTOs.BlogsDto
     {
         public int BlogId { get; set; }
         public string Title { get; set; }
+        public string ProfilePicture { get; set; }
         public string Content { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CategoryName { get; set; }   
