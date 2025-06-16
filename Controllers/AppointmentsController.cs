@@ -38,7 +38,13 @@ namespace Mero_Doctor_Project.Controllers
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
-                return Unauthorized();
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: Plesase Login For Book Appointment.",
+                    Data = null
+                });
+
 
             var result = await _appointmentRepository.BookAppointmentAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
