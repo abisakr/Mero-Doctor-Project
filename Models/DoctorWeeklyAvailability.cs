@@ -5,7 +5,7 @@ namespace Mero_Doctor_Project.Models
     public class DoctorWeeklyAvailability
     {
         [Key]
-        public int DoctorWeeklyAvailabilityId { get; set; } // Standardized property name
+        public int DoctorWeeklyAvailabilityId { get; set; } 
 
         [Required]
         public int DoctorId { get; set; }
