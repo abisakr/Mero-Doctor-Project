@@ -109,7 +109,13 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationDto dto)
         {
             var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
-            if (appointment == null) return NotFound("Appointment not found");
+            if (appointment == null) return 
+            NotFound(new ResponseModel<string>
+            {
+                Success = false,
+                Message = "Appointment not found",
+                Data = null
+            });
 
             appointment.Status = AppointmentStatus.Accepted;
             appointment.TransactionStatus = "Complete";
