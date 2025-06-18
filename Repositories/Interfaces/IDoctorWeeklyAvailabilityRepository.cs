@@ -8,6 +8,6 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
         Task<ResponseModel<string>> SetDoctorAvailabilityAsync(SetDoctorAvailabilityDto dto,string userId);
         Task<ResponseModel<GetDoctorAvailabilityDto>> GetDoctorAvailabilityAsync(string doctorId);
         Task<ResponseModel<string>> DeleteDoctorTimeRangeAsync(DeleteTimeRangeDto dto, string userId);
-        Task<ResponseModel<string>> DeleteDoctorWeekdayAsync(DeleteWeekdayDto dto, string userId);
+        Task<ResponseModel<string>> DeleteDoctorDayAvailabililtyAsync(DeleteWeekdayDto dto, string userId);
     }
 }

@@ -4,7 +4,7 @@ namespace Mero_Doctor_Project.DTOs.DoctorDto
 {
     public class SetDayAvailabilityDto
     {
-        public DayOfWeek DayOfWeek { get; set; }
-        public List<TimeRangeDto> TimeRanges { get; set; }
+        public DateOnly AvailableDate { get; set; }
+        public List<SetTimeRangeDto> TimeRanges { get; set; }
     }
 }

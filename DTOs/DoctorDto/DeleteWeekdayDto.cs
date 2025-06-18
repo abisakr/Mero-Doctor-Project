@@ -2,7 +2,6 @@
 {
     public class DeleteWeekdayDto
     {
-        public int DoctorId { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
+        public int DoctorWeeklyAvailabilityId { get; set; }
     }
 }

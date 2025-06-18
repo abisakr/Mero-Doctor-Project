@@ -10,10 +10,8 @@ namespace Mero_Doctor_Project.Models
         [Required]
         public int DoctorWeeklyAvailabilityId { get; set; } // FK to DoctorWeeklyAvailability
 
-        public TimeOnly StartTime { get; set; }
-        public TimeOnly EndTime { get; set; }
+        public TimeOnly AvailableTime { get; set; }
         public bool IsAvailable { get; set; }
-
         public DoctorWeeklyAvailability WeeklyAvailability { get; set; } // Navigation property
 
     }

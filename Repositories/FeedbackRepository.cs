@@ -45,7 +45,7 @@ namespace Mero_Doctor_Project.Repositories
                     FeedbackId = f.FeedbackId,
                     Email = f.Email,
                     Description = f.Description,
-                    CreatedDate = f.CreatedDate
+                    CreatedDate = f.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss tt"),
                 }).ToListAsync();
 
             return new ResponseModel<List<FeedbackGetDto>>

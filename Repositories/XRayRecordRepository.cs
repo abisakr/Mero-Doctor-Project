@@ -110,14 +110,14 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<XRayHistoryDto>>> GetUserXRayHistory(string userId)
+        public async Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(string userId)
         {
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(p => p.Id == userId);
                 if (user == null)
                 {
-                    return new ResponseModel<List<XRayHistoryDto>>
+                    return new ResponseModel<List<GetXRayHistoryDto>>
                     {
                         Success = false,
                         Message = "Patient not found"
@@ -127,18 +127,18 @@ namespace Mero_Doctor_Project.Repositories
                 var records = await _context.XRayRecords
                     .Where(r => r.PatientId == user.Id)
                     .OrderByDescending(r => r.DateTime)
-                    .Select(r => new XRayHistoryDto
+                    .Select(r => new GetXRayHistoryDto
                     {
                         XRayImageUrl = r.XRayImageUrl,
                         Result = r.Result,
                         GradCamUrl = r.GradCamUrl,
                         RecommendedHospital = r.RecommendedHospital,
-                        DateTime = r.DateTime
+                        DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
 
                     })
                     .ToListAsync();
 
-                return new ResponseModel<List<XRayHistoryDto>>
+                return new ResponseModel<List<GetXRayHistoryDto>>
                 {
                     Success = true,
                     Message = "Data fetched successfully.",
@@ -147,7 +147,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<XRayHistoryDto>> { Success = false, Message = $"Error: {ex.Message}" };
+                return new ResponseModel<List<GetXRayHistoryDto>> { Success = false, Message = $"Error: {ex.Message}" };
             }
         
         }

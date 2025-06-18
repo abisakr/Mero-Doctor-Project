@@ -88,7 +88,7 @@ namespace Mero_Doctor_Project.Repositories
                     BlogId = c.BlogId,
                     Comment = c.Comment,
                     Name = c.Name,
-                    CreatedDate = c.CreatedDate
+                    CreatedDate = c.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss tt")  
                 }).ToListAsync();
 
             return new ResponseModel<List<BlogCommentGetDto>>
@@ -110,7 +110,7 @@ namespace Mero_Doctor_Project.Repositories
                     BlogId = c.BlogId,
                     Comment = c.Comment,
                     Name = c.Name,
-                    CreatedDate = c.CreatedDate
+                    CreatedDate = c.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss tt")  
                 }).ToListAsync();
 
             return new ResponseModel<List<BlogCommentGetDto>>

@@ -36,8 +36,8 @@ namespace Mero_Doctor_Project.Controllers
         [HttpPost("bookAppointment")]
         public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentDto dto)
         {
-            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            string patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (patientUserId == null)
                 return Unauthorized(new ResponseModel<string>
                 {
                     Success = false,
@@ -45,7 +45,7 @@ namespace Mero_Doctor_Project.Controllers
                     Data = null
                 });
 
-            var result = await _appointmentRepository.BookAppointmentAsync(dto, userId);
+            var result = await _appointmentRepository.BookAppointmentAsync(dto, patientUserId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -67,13 +67,21 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _appointmentRepository.UpdateAppointmentStatusAsync(dto, doctorUserId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
-        [HttpGet("doctorAppointments/{doctorId}")]
+        [HttpGet("doctorAppointments")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
-        public async Task<IActionResult> GetAppointmentsByDoctor(int doctorId)
+        public async Task<IActionResult> GetAppointmentsByDoctor()
         {
             string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var result = await _appointmentRepository.GetAppointmentsByDoctorAsync(doctorId);
+            if (doctorUserId == null)
+            {
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: Doctor ID not found",
+                    Data = null
+                });
+            }
+            var result = await _appointmentRepository.GetAppointmentsByDoctorAsync(doctorUserId);
             if (!result.Success)
                 return BadRequest(result);
 
@@ -85,9 +93,9 @@ namespace Mero_Doctor_Project.Controllers
       [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
         public async Task<IActionResult> GetAppointmentsByPatient()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (userId == null)
+            if (patientUserId == null)
             {
                 return Unauthorized(new ResponseModel<string>
                 {
@@ -97,7 +105,7 @@ namespace Mero_Doctor_Project.Controllers
                 });
             }
 
-            var result = await _appointmentRepository.GetAppointmentsByPatientAsync(userId);
+            var result = await _appointmentRepository.GetAppointmentsByPatientAsync(patientUserId);
             if (!result.Success)
                 return BadRequest(result);
 

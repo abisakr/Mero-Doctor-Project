@@ -2,7 +2,7 @@
 {
     public class GetDoctorAvailabilityDto
     {
-        public string DoctorId { get; set; }
+        public string DoctorUserId { get; set; }
         public List<GetDayAvailabilityDto> Availabilities { get; set; }
     }
 }

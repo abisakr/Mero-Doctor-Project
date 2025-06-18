@@ -3,11 +3,9 @@
     public class BookAppointmentDto
     {
         
-            public int DoctorId { get; set; }
-            public DayOfWeek DayOfWeek { get; set; } // Comes directly from UI selection
-            public TimeOnly StartTime { get; set; }
-            public TimeOnly EndTime { get; set; }
-            public DateTime AppointmentDate { get; set; }
-
+        public int DoctorId { get; set; }
+        public TimeOnly AvailableTime { get; set; }
+        public DateOnly AvailableDate { get; set; }
+        public decimal Price { get; set; }
     }
 }
