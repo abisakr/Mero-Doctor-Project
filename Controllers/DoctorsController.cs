@@ -51,13 +51,12 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
-        //[Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
-        [HttpDelete("delete-weekday")]
-        public async Task<IActionResult> DeleteWeekdayAvailability([FromBody] DeleteWeekdayDto dto)
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        [HttpDelete("delete-day-Schedule")]
+        public async Task<IActionResult> DeleteDoctorDayAvailabililtyAsync([FromBody] DeleteWeekdayDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //var userId = "e6e43d3a-f925-44df-ba94-a84e1dd61157";
-            var result = await _doctorAvailabilityRepository.DeleteDoctorWeekdayAsync(dto, userId);
+            var result = await _doctorAvailabilityRepository.DeleteDoctorDayAvailabililtyAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -66,7 +65,6 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<IActionResult> DeleteTimeRange([FromBody] DeleteTimeRangeDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //var userId = "e6e43d3a-f925-44df-ba94-a84e1dd61157";
             var result = await _doctorAvailabilityRepository.DeleteDoctorTimeRangeAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
         }

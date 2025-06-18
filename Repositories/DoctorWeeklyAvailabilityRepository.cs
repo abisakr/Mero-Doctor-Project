@@ -14,33 +14,30 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        public async Task<ResponseModel<string>> SetDoctorAvailabilityAsync(SetDoctorAvailabilityDto dto,string userId)
+
+        public async Task<ResponseModel<string>> SetDoctorAvailabilityAsync(SetDoctorAvailabilityDto dto, string userId)
         {
             try
             {
-                foreach (var dayAvailability in dto.Availabilities)
+                foreach (var availability in dto.Availabilities)
                 {
                     var existingDay = await _context.DoctorWeeklyAvailabilities
-                        .Include(d => d.TimeRanges).Include(d=>d.Doctor)
-                        .FirstOrDefaultAsync(d =>
-                            d.Doctor.UserId == userId && d.DayOfWeek == dayAvailability.DayOfWeek);
+                        .Include(d => d.TimeRanges)
+                        .Include(d => d.Doctor)
+                        .FirstOrDefaultAsync(d => d.Doctor.UserId == userId && d.AvailableDate == availability.AvailableDate);
 
                     if (existingDay != null)
                     {
-                        foreach (var time in dayAvailability.TimeRanges)
+                        foreach (var time in availability.TimeRanges)
                         {
                             bool isDuplicate = existingDay.TimeRanges.Any(tr =>
-                                tr.StartTime == time.StartTime && tr.EndTime == time.EndTime);
+                                tr.AvailableTime == time.AvailableTime);
 
-                            bool isOverlapping = existingDay.TimeRanges.Any(tr =>
-                                time.StartTime < tr.EndTime && time.EndTime > tr.StartTime);
-
-                            if (!isDuplicate && !isOverlapping)
+                            if (!isDuplicate)
                             {
                                 var newRange = new DoctorWeeklyTimeRange
                                 {
-                                    StartTime = time.StartTime,
-                                    EndTime = time.EndTime,
+                                    AvailableTime = time.AvailableTime,
                                     IsAvailable = true,
                                     DoctorWeeklyAvailabilityId = existingDay.DoctorWeeklyAvailabilityId
                                 };
@@ -52,30 +49,27 @@ namespace Mero_Doctor_Project.Repositories
                     {
                         var validTimeRanges = new List<DoctorWeeklyTimeRange>();
 
-                        foreach (var time in dayAvailability.TimeRanges)
+                        foreach (var time in availability.TimeRanges)
                         {
-                            // Avoid self-overlapping within new time ranges
-                            if (validTimeRanges.Any(tr =>
-                                time.StartTime < tr.EndTime && time.EndTime > tr.StartTime))
+                            if (!validTimeRanges.Any(tr => tr.AvailableTime == time.AvailableTime))
                             {
-                                continue; // Skip overlapping slot
+                                validTimeRanges.Add(new DoctorWeeklyTimeRange
+                                {
+                                    AvailableTime = time.AvailableTime,
+                                    IsAvailable = true
+                                });
                             }
-
-                            validTimeRanges.Add(new DoctorWeeklyTimeRange
-                            {
-                                StartTime = time.StartTime,
-                                EndTime = time.EndTime,
-                                IsAvailable = true
-                            });
                         }
-                        var doctorId= _context.Doctors
+
+                        var doctorId = await _context.Doctors
                             .Where(d => d.UserId == userId)
                             .Select(d => d.DoctorId)
-                            .FirstOrDefault();  
+                            .FirstOrDefaultAsync();
+
                         var newDay = new DoctorWeeklyAvailability
                         {
                             DoctorId = doctorId,
-                            DayOfWeek = dayAvailability.DayOfWeek,
+                            AvailableDate = availability.AvailableDate,
                             TimeRanges = validTimeRanges
                         };
 
@@ -103,16 +97,14 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-
-
         public async Task<ResponseModel<GetDoctorAvailabilityDto>> GetDoctorAvailabilityAsync(string doctorId)
         {
             try
             {
                 var availabilities = await _context.DoctorWeeklyAvailabilities
                     .Where(a => a.Doctor.UserId == doctorId)
-                    .Include(a => a.Doctor).
-                     Include(a => a.TimeRanges)
+                    .Include(a => a.Doctor)
+                    .Include(a => a.TimeRanges)
                     .ToListAsync();
 
                 if (!availabilities.Any())
@@ -127,15 +119,16 @@ namespace Mero_Doctor_Project.Repositories
 
                 var dto = new GetDoctorAvailabilityDto
                 {
-                    DoctorId = doctorId,
+                    DoctorUserId = doctorId,
                     Availabilities = availabilities.Select(a => new GetDayAvailabilityDto
                     {
-                        DayOfWeek = a.DayOfWeek.ToString(),
-                        TimeRanges = a.TimeRanges.Select(tr => new TimeRangeDto
-                        {
-                            StartTime = tr.StartTime,
-                            EndTime = tr.EndTime,
-                            IsAvailable = tr.IsAvailable
+                        DoctorWeeklyAvailabilityId=a.DoctorWeeklyAvailabilityId,   
+                        AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                        DayOfWeek = a.AvailableDate.DayOfWeek.ToString(),   
+                        TimeRanges = a.TimeRanges.Select(tr => new GetTimeRangeDto
+                        {   TimeRangeId=tr.DoctorWeeklyTimeRangeId,
+                            AvailableTime = tr.AvailableTime.ToString("hh:mm tt"),
+                            IsAvailable = tr.IsAvailable ? "Yes" : "No" 
                         }).ToList()
                     }).ToList()
                 };
@@ -158,12 +151,11 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-
-        public async Task<ResponseModel<string>> DeleteDoctorWeekdayAsync(DeleteWeekdayDto dto, string userId)
+        public async Task<ResponseModel<string>> DeleteDoctorDayAvailabililtyAsync(DeleteWeekdayDto dto, string userId)
         {
             try
             {
-                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == dto.DoctorId && d.UserId == userId);
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId ==userId );
                 if (doctor == null)
                 {
                     return new ResponseModel<string>
@@ -174,11 +166,11 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                var day = await _context.DoctorWeeklyAvailabilities
+                var availability = await _context.DoctorWeeklyAvailabilities
                     .Include(d => d.TimeRanges)
-                    .FirstOrDefaultAsync(d => d.DoctorId == dto.DoctorId && d.DayOfWeek == dto.DayOfWeek);
+                    .FirstOrDefaultAsync(d => d.DoctorId == doctor.DoctorId && d.DoctorWeeklyAvailabilityId == dto.DoctorWeeklyAvailabilityId);
 
-                if (day == null)
+                if (availability == null)
                 {
                     return new ResponseModel<string>
                     {
@@ -188,8 +180,8 @@ namespace Mero_Doctor_Project.Repositories
                     };
                 }
 
-                _context.DoctorWeeklyTimeRanges.RemoveRange(day.TimeRanges);
-                _context.DoctorWeeklyAvailabilities.Remove(day);
+                _context.DoctorWeeklyTimeRanges.RemoveRange(availability.TimeRanges);
+                _context.DoctorWeeklyAvailabilities.Remove(availability);
                 await _context.SaveChangesAsync();
 
                 return new ResponseModel<string>
@@ -209,6 +201,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<string>> DeleteDoctorTimeRangeAsync(DeleteTimeRangeDto dto, string userId)
         {
             try
@@ -258,7 +251,5 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
     }
 }
-

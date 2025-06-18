@@ -10,7 +10,7 @@ namespace Mero_Doctor_Project.Models
         [Required]
         public int DoctorId { get; set; }
 
-        public DayOfWeek DayOfWeek { get; set; } // Using built-in Enum
+        public DateOnly AvailableDate { get; set; }
 
         public ICollection<DoctorWeeklyTimeRange> TimeRanges { get; set; }=
         new List<DoctorWeeklyTimeRange>();

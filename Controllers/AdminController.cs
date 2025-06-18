@@ -24,13 +24,27 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<ActionResult<ResponseModel<UpdateDoctorInfoDto>>> VerifyDoctor(int id, [FromBody] DoctorStatus status)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                var errorMessage = "Invalid Credentials: " + string.Join("; ", errors);
+
+                return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = errorMessage,
+                    Data = null
+                });
+            }
 
             var result = await _adminRepository.VerifyDoctorAsync(id, status);
 
             if (result.Success)
             {
-                var doctorUserId = result.Data.UserId; 
+                var doctorUserId = result.Data.UserId;
 
                 var message = $"Your verification status has been updated to {status}.";
 

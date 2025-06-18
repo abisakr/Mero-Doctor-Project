@@ -16,59 +16,59 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        public async Task<ResponseModel<string>> BookAppointmentAsync(BookAppointmentDto dto, string userId)
+        public async Task<ResponseModel<string>> BookAppointmentAsync(BookAppointmentDto dto, string patientUserId)
         {
             try
             {
-                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
-                if (patient == null) return new ResponseModel<string> { Success = true, Message = "Patient not found.", Data = null };
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == patientUserId);
+                if (patient == null)
+                    return new ResponseModel<string> { Success = false, Message = "Patient not found.", Data = null };
 
                 var availability = await _context.DoctorWeeklyAvailabilities
-                    .Include(a => a.TimeRanges)
-                    .FirstOrDefaultAsync(a => a.DoctorId == dto.DoctorId && a.DayOfWeek == dto.DayOfWeek);
+                    .Include(a => a.TimeRanges).Include(a => a.Doctor)
+                    .FirstOrDefaultAsync(a => a.DoctorId == dto.DoctorId && a.AvailableDate == dto.AvailableDate);
 
-                if (availability == null) return new ResponseModel<string> { Success = true, Message = "Doctor not available on selected day.", Data = null };
+                if (availability == null)
+                    return new ResponseModel<string> { Success = false, Message = "Doctor not available on selected date.", Data = null };
 
                 var matchingTimeRange = availability.TimeRanges.FirstOrDefault(tr =>
-                    tr.IsAvailable &&
-                    dto.StartTime >= tr.StartTime &&
-                    dto.EndTime <= tr.EndTime);
+                    tr.IsAvailable && tr.AvailableTime == dto.AvailableTime);
 
-                if (matchingTimeRange == null) return new ResponseModel<string>
-                {
-                    Success = true,
-                    Message = "Time slot not available.",
-                    Data = null
-                };
+                if (matchingTimeRange == null)
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Time slot not available.",
+                        Data = null
+                    };
 
                 bool hasConflict = await _context.Appointments.AnyAsync(a =>
                     a.DoctorId == dto.DoctorId &&
-                    a.DateTime.Date == dto.AppointmentDate.Date &&
-                    ((dto.StartTime >= a.StartTime && dto.StartTime < a.EndTime) ||
-                     (dto.EndTime > a.StartTime && dto.EndTime <= a.EndTime)));
+                    a.AvailableDate == dto.AvailableDate &&
+                    a.AvailableTime == dto.AvailableTime);
 
-                if (hasConflict) return new ResponseModel<string>
-                {
-                    Success = true,
-                    Message = "Slot already booked.",
-                    Data = null
-                };
+                if (hasConflict)
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Slot already booked.",
+                        Data = null
+                    };
 
                 string transactionId = $"tx-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-                decimal price = 1000; 
 
                 var appointment = new Appointment
                 {
                     DoctorId = dto.DoctorId,
                     PatientId = patient.PatientId,
-                    DayOfWeek = dto.DayOfWeek,
-                    DateTime = DateTime.UtcNow,
-                    StartTime = dto.StartTime,
-                    EndTime = dto.EndTime,
+                    AvailableDate = dto.AvailableDate,
+                    AvailableTime = dto.AvailableTime,
+                    BookingDateTime = DateTime.UtcNow,
                     Status = AppointmentStatus.Pending,
-                    Price = price,
+                    Price = dto.Price,
                     TransactionId = transactionId,
-                    TransactionStatus = "Pending"
+                    TransactionStatus = "Pending",
+                    Visited = false
                 };
 
                 _context.Appointments.Add(appointment);
@@ -85,10 +85,10 @@ namespace Mero_Doctor_Project.Repositories
             {
                 return new ResponseModel<string>
                 {
-                    Success = true,
+                    Success = false,
                     Message = $"Error: {ex.Message}",
                     Data = null
-                }; 
+                };
             }
         }
 
@@ -155,14 +155,14 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-        public async Task<ResponseModel<List<AppointmentDto>>> GetAppointmentsByPatientAsync(string userId)
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetAppointmentsByPatientAsync(string patientUserId)
         {
             try
             {
-                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == patientUserId);
                 if (patient == null)
                 {
-                    return new ResponseModel<List<AppointmentDto>>
+                    return new ResponseModel<List<GetAppointmentDto>>
                     {
                         Success = false,
                         Message = "Patient not found.",
@@ -174,22 +174,23 @@ namespace Mero_Doctor_Project.Repositories
                     .Where(a => a.PatientId == patient.PatientId)
                     .Include(a => a.Doctor)
                     .ThenInclude(d => d.User)
-                    .OrderByDescending(a => a.DateTime)
+                    .OrderByDescending(a => a.BookingDateTime)
                     .ToListAsync();
 
-                var dtoList = appointments.Select(a => new AppointmentDto
+                var dtoList = appointments.Select(a => new GetAppointmentDto
                 {
                     AppointmentId = a.AppointmentId,
                     DoctorId = a.DoctorId,
                     PatientId = a.PatientId,
-                    Status = a.Status,
-                    StartTime = a.StartTime,
-                    EndTime = a.EndTime,
-                    AppointmentDate = a.DateTime,
-                    DoctorName = a.Doctor.User.FullName 
+                    Status = a.Status.ToString(),
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),  // e.g. 2025-06-18
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),     // e.g. 02:45 PM
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"), // e.g. 2025-06-18 02:45:30 PM
+                    DoctorName = a.Doctor.User.FullName,
+                    PatientName = null // You can add patient name if needed here
                 }).ToList();
 
-                return new ResponseModel<List<AppointmentDto>>
+                return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = true,
                     Message = "Appointments fetched successfully.",
@@ -198,7 +199,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<AppointmentDto>>
+                return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -206,31 +207,42 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-        public async Task<ResponseModel<List<AppointmentDto>>> GetAppointmentsByDoctorAsync(int doctorId)
+
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetAppointmentsByDoctorAsync(string doctorUserId)
         {
             try
             {
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(p => p.UserId == doctorUserId);
+                if (doctor == null)
+                {
+                    return new ResponseModel<List<GetAppointmentDto>>
+                    {
+                        Success = false,
+                        Message = "Doctor not found.",
+                        Data = null
+                    };
+                }
                 var appointments = await _context.Appointments
-                       .Where(a => a.DoctorId == doctorId)
-                       .Include(a => a.Patient)
-                       .ThenInclude(p => p.User) 
-                       .OrderByDescending(a => a.DateTime)
-                       .ToListAsync();
+                    .Where(a => a.DoctorId == doctor.DoctorId)
+                    .Include(a => a.Patient)
+                        .ThenInclude(p => p.User)
+                    .OrderByDescending(a => a.BookingDateTime) // Changed to BookingDateTime from DateTime
+                    .ToListAsync();
 
-
-                var dtoList = appointments.Select(a => new AppointmentDto
+                var dtoList = appointments.Select(a => new GetAppointmentDto
                 {
                     AppointmentId = a.AppointmentId,
                     DoctorId = a.DoctorId,
-                    PatientId = a.PatientId,
-                    Status = a.Status,
-                    StartTime = a.StartTime,
-                    EndTime = a.EndTime,
-                    AppointmentDate = a.DateTime,
-                    PatientName = a.Patient.User.FullName 
+                    PatientId = a.DoctorId,
+                    Status = a.Status.ToString(), // convert enum to string
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"), // format DateOnly as string
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),                    // format TimeOnly as string
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"), // format DateTime as string
+                    PatientName = a.Patient.User.FullName,
+                    DoctorName = null // You can fill this if you include Doctor and Doctor.User as well
                 }).ToList();
 
-                return new ResponseModel<List<AppointmentDto>>
+                return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = true,
                     Message = "Appointments fetched successfully.",
@@ -239,7 +251,7 @@ namespace Mero_Doctor_Project.Repositories
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<AppointmentDto>>
+                return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",
@@ -247,6 +259,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
 
     }
 
