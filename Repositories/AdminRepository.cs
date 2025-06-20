@@ -103,7 +103,7 @@ namespace Mero_Doctor_Project.Repositories
                     return new ResponseModel<List<GetDoctorInfoDto>>
                     {
                         Success = false,
-                        Message = "No verified doctors found",
+                        Message = "No verified doctors found.",
                         Data = null
                     };
                 }
