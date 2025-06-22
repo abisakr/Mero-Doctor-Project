@@ -29,7 +29,7 @@ namespace Mero_Doctor_Project.Repositories
                 var category = await _context.Categories.FindAsync(dto.CategoryId);
                     if (category == null)
                     return new ResponseModel<string> { Success = false, Message = "Category not found" };
-
+                    //maon
                 var savedImageUrl = await _uploadImageHelper.UploadImageAsync(dto.BlogPictureUrl, "blogs-images");
                 var blog = new Blog
                 {
