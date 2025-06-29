@@ -17,7 +17,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 - Feedback and doctor review system
 - Role-based access for Admin, Doctor, and Patient
 - eSewa payment integration before confirming appointments
-- Admin validation of doctors using NMC (NOC) number,Manage (Doctor Specialization, BlogCategory),view total users ,Appointments
+- Admin validation of doctors using NMC (NOC) number,Manage (Doctor Specialization, BlogCategory),View total users
 
 ---
 
