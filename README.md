@@ -47,7 +47,7 @@ Open `appsettings.json` and replace the SQL Server name with yours:
 "ConnectionStrings": {
   "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=MeroDoctorDb;Trusted_Connection=True;"
 }
-
+```
 ### 2. Update the Database
 
 Run the following command to apply migrations and create the database:
