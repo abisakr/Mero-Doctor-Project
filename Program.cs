@@ -86,6 +86,7 @@ builder.Services.AddScoped<ILikeRepository, LikeRepository>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // CORS setup – add both if you're unsure which one is needed

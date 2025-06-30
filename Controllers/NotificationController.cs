@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Mero_Doctor_Project.Repositories;
+using Mero_Doctor_Project.DTOs.NotificationDto;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -11,25 +13,28 @@ namespace Mero_Doctor_Project.Controllers
     [ApiController]
     public class NotificationController : ControllerBase
     {
-        private readonly IRatingReviewRepository _ratingReviewRepository;
+        private readonly INotificationRepository _notificationRepository;
 
-        public NotificationController(IRatingReviewRepository ratingReviewRepository)
+        public NotificationController(INotificationRepository notificationRepository)
         {
-            _ratingReviewRepository = ratingReviewRepository;
+            _notificationRepository = notificationRepository;
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create([FromBody] RatingReviewCreateDto dto)
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<IActionResult> Create([FromBody] NotificationCreateDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var result = await _ratingReviewRepository.CreateRatingAsync(dto, userId);
+            var result = await _notificationRepository.AddAsync(dto, userId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpGet("DoctorRatings/{doctorId}")]
-        public async Task<IActionResult> GetDoctorRatings(int doctorId)
+        [HttpGet("notifications")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<IActionResult> GeAllNotificationsByUserId()
         {
-            var result = await _ratingReviewRepository.GetAllRatingsForDoctorAsync(doctorId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _notificationRepository.GeAllNotificationsByIdAsync(userId);
             return result.Success ? Ok(result) : NotFound(result);
         }
     }

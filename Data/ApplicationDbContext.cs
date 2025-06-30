@@ -26,6 +26,7 @@ namespace Mero_Doctor_Project.Data
         public DbSet<BlogComment> BlogComments { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -67,6 +68,13 @@ namespace Mero_Doctor_Project.Data
               .WithOne(x => x.User)
               .HasForeignKey(x => x.PatientId)
               .OnDelete(DeleteBehavior.Cascade); // Delete X-ray records if patient is deleted
+
+            modelBuilder.Entity<ApplicationUser>()
+               .HasMany(u => u.Notifications)
+               .WithOne(n => n.User)
+               .HasForeignKey(n => n.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
             // Doctor Relationships
             modelBuilder.Entity<Doctor>()
                 .HasOne(d => d.Specialization)

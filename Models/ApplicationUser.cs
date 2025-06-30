@@ -20,6 +20,7 @@ namespace Mero_Doctor_Project.Models
         public ICollection<Like> Likes { get; set; } // Navigation property
         public ICollection<RatingReview> RatingReviews { get; set; } // Navigation property
         public ICollection<XRayRecord> XRayRecords { get; set; }
+        public ICollection<Notification> Notifications { get; set; }
 
     }
 }
