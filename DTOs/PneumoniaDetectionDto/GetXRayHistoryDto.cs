@@ -4,6 +4,7 @@
     {
         public string XRayImageUrl { get; set; }
         public string Result { get; set; }
+        public float? Confidence { get; set; }
         public string GradCamUrl { get; set; }
         public string RecommendedHospital { get; set; }
         public string DateTime { get; set; }

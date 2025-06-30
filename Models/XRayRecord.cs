@@ -18,6 +18,8 @@ namespace Mero_Doctor_Project.Models
         [StringLength(50)]
         public string Result { get; set; } // Positive/Negative
 
+        public float? Confidence { get; set; }
+
         [StringLength(200)]
         public string RecommendedHospital { get; set; }
 

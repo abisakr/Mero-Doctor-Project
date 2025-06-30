@@ -130,6 +130,7 @@ def predict():
 
     return jsonify({
         "result": result,
+        "confidence": float(prediction),
         "gradCamUrl": relative_gradcam_url,
         "recommendations": recommendations
     })

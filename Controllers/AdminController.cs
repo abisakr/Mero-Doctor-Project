@@ -1,8 +1,10 @@
-﻿using Mero_Doctor_Project.DTOs.Admin; // Make sure this is the correct namespace for DoctorInfoDto
+﻿using System.Security.Claims;
+using Mero_Doctor_Project.DTOs.Admin; // Make sure this is the correct namespace for DoctorInfoDto
 using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Models.Enums;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mero_Doctor_Project.Controllers
@@ -86,5 +88,28 @@ namespace Mero_Doctor_Project.Controllers
 
             return NotFound(result);
         }
+        [HttpGet("dashboard")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
+        public async Task<ActionResult<ResponseModel<AdminDashboardViewDto>>> DashboardView()
+        {
+            var result = await _adminRepository.DashboardView();
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
+        [HttpGet("profile")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
+        public async Task<ActionResult<ResponseModel<AdminDashboardViewDto>>> AdminProfile()
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _adminRepository.GetAdminById(userId);
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+        }
+
     }
-}

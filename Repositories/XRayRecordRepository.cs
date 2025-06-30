@@ -46,7 +46,7 @@ namespace Mero_Doctor_Project.Repositories
 
                 var json = await response.Content.ReadAsStringAsync();
                 dynamic resultObj = JsonConvert.DeserializeObject(json);
-
+                float confidence = resultObj.confidence;
                 string result = resultObj.result;
                 string gradcamUrl = resultObj.gradCamUrl;
 
@@ -80,6 +80,7 @@ namespace Mero_Doctor_Project.Repositories
                     PatientId = user.Id,
                     XRayImageUrl = savedImageUrl,
                     Result = result,
+                    Confidence = confidence,
                     GradCamUrl = gradcamUrl,
                 //    RecommendedHospital = topHospital,
                     RecommendedHospital = recommendedHospitals.Any()
@@ -98,6 +99,7 @@ namespace Mero_Doctor_Project.Repositories
                     Data = new XRayLiveHistoryDto
                     {
                         XRayImageUrl = record.XRayImageUrl,
+                        Confidence= confidence,
                         Result = record.Result,
                         GradCamUrl = record.GradCamUrl,
                         RecommendedHospitals = recommendedHospitals
@@ -132,6 +134,7 @@ namespace Mero_Doctor_Project.Repositories
                         XRayImageUrl = r.XRayImageUrl,
                         Result = r.Result,
                         GradCamUrl = r.GradCamUrl,
+                        Confidence = (float)r.Confidence,
                         RecommendedHospital = r.RecommendedHospital,
                         DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
 

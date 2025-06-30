@@ -229,6 +229,75 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
+        public async Task<ResponseModel<AdminDashboardViewDto>> DashboardView()
+        {
+            try
+            {
+                var totalDoctors = await _dbSet.CountAsync(d => d.Status == DoctorStatus.Verified);
+                var totalPatients = await _context.Patients.CountAsync();
+                var totalXrayHistory = await _context.XRayRecords.CountAsync();
+                var totalAppointments = await _context.Appointments.CountAsync();
+                var totaDoctorlBlogs = await _context.Blogs.CountAsync();
+                var dashboardData = new AdminDashboardViewDto
+                {
+                    TotalDoctors = totalDoctors,
+                    TotalPatients = totalPatients,
+                    TotalPneumoniaChecked = totalXrayHistory,
+                    TotalAppointments = totalAppointments,
+                    TotaDoctorlBlogs=totaDoctorlBlogs
+                };
+                return new ResponseModel<AdminDashboardViewDto>
+                {
+                    Success = true,
+                    Message = "Dashboard data retrieved successfully",
+                    Data = dashboardData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<AdminDashboardViewDto>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }   
+        }
+
+        public async Task<ResponseModel<GetAdminDto>> GetAdminById(string userId)
+        {
+            try
+            {
+                var admin =await _context.Users.FindAsync(userId);
+                if (admin == null)
+                {
+                    return new ResponseModel<GetAdminDto>
+                    {
+                        Success = false,
+                        Message = "Admin not found.",
+                        Data = null
+                    };
+                }
+                var result= new GetAdminDto {UserId=userId, Email = admin.Email, FullName = admin.FullName,ProfilePictureUrl=admin.ProfilePictureUrl};
+                return new ResponseModel<GetAdminDto>
+                {
+                    Success = true,
+                    Message = "Admin found.",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+
+                return new ResponseModel<GetAdminDto>
+                {
+                    Success = true,
+                    Message = $"Error:{ex}",
+                    Data = null
+                };
+            }
+        }
+
     }
 }
 

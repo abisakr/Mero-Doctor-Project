@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Net;
 using System.Reflection.Metadata;
 using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.DTOs.AuthDto;
@@ -18,10 +19,12 @@ namespace Mero_Doctor_Project.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _authRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuthController( IAuthRepository authRepository)
+        public AuthController( IAuthRepository authRepository,UserManager<ApplicationUser> userManager)
         {
             _authRepository = authRepository;
+            _userManager = userManager;
         }
 
         [HttpPost("login")]
@@ -39,6 +42,68 @@ namespace Mero_Doctor_Project.Controllers
 
             return Unauthorized(result);
         }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Invalid email.",
+                    Data = null
+                }); 
+            var roles= await _userManager.GetRolesAsync(user);
+            if (roles.Contains("Admin"))
+            {
+                return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Sorry, cannot proceed with the request.",
+                    Data = null
+                });
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetToken = WebUtility.UrlEncode(token);
+            return  Ok(new ResponseModel<string>
+                {
+                    Success = true,
+                    Message = "Token Sent.",
+                    Data = resetToken
+            });  
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Invalid request.",
+                    Data = null
+                });
+
+            var result = await _userManager.ResetPasswordAsync(user, WebUtility.UrlDecode(model.Token), model.NewPassword);
+
+            if (!result.Succeeded) 
+                 return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Error on resetting the Password.",
+                    Data = null
+                });
+
+            return Ok(new ResponseModel<string>
+            {
+                Success = true,
+                Message = "Password reset successfully.",
+                Data = null
+            });
+        }
+
     }
 
 

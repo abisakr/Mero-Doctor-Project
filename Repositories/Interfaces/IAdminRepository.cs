@@ -10,6 +10,8 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
         public Task<ResponseModel<List<GetDoctorInfoDto>>> GetVerifiedDoctorsAsync();
         public Task<ResponseModel<List<GetDoctorInfoDto>>> GetPendingDoctorsAsync();
         public Task<ResponseModel<List<GetDoctorInfoDto>>> GetRejectedDoctorsAsync();
+        Task<ResponseModel<AdminDashboardViewDto>> DashboardView();
+        Task<ResponseModel<GetAdminDto>> GetAdminById(string userId);
     }
 
 }
