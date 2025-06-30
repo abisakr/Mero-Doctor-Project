@@ -5,6 +5,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Mero_Doctor_Project.Repositories;
+using Mero_Doctor_Project.Helper;
+using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Models;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -13,10 +16,13 @@ namespace Mero_Doctor_Project.Controllers
     public class RatingsController : ControllerBase
     {
         private readonly IRatingReviewRepository _ratingReviewRepository;
+        private readonly NotificationHelper _notificationHelper;
 
-        public RatingsController(IRatingReviewRepository ratingReviewRepository)
+        public RatingsController(IRatingReviewRepository ratingReviewRepository, NotificationHelper notificationHelper)
         {
             _ratingReviewRepository = ratingReviewRepository;
+            _notificationHelper = notificationHelper;
+
         }
 
         [HttpPost("Create")]
@@ -25,7 +31,12 @@ namespace Mero_Doctor_Project.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _ratingReviewRepository.CreateRatingAsync(dto, userId);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+              await  _notificationHelper.SendAndStoreNotificationAsync(result.Data, "You received a new rating from a patient.");
+                return Ok(new ResponseModel<string> { Success = true, Message = "Rating added successfully." });
+            }
+            return BadRequest(result);
         }
 
         [HttpPut("Update")]
@@ -34,7 +45,11 @@ namespace Mero_Doctor_Project.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _ratingReviewRepository.UpdateRatingAsync(dto, userId);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return  BadRequest(result);
         }
 
         [HttpGet("UserRating/{doctorId}")]

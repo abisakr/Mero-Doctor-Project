@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Repositories;
+using Mero_Doctor_Project.Helper;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -16,10 +17,14 @@ namespace Mero_Doctor_Project.Controllers
     public class AuthDoctorRegistrationController : ControllerBase
     {
         private readonly IAuthDoctorRegistrationRepository _authDoctorRegistrationRepository;
-
-        public AuthDoctorRegistrationController(IAuthDoctorRegistrationRepository authDoctorRegistrationRepository)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly NotificationHelper _notificationHelper;
+        public AuthDoctorRegistrationController(UserManager<ApplicationUser> userManager ,IAuthDoctorRegistrationRepository authDoctorRegistrationRepository, NotificationHelper notificationHelper)
         {
+            _userManager = userManager;
             _authDoctorRegistrationRepository = authDoctorRegistrationRepository;
+            _notificationHelper = notificationHelper;
+
         }
 
         [HttpPost("doctorLogin")]
@@ -53,6 +58,11 @@ namespace Mero_Doctor_Project.Controllers
             // Check the result from the service
             if (response.Success)
             {
+                string message = $"New Doctor Registered:{dto.FullName}";
+                var admins = await _userManager.GetUsersInRoleAsync("Admin");
+                var tasks = admins.Select(admin =>
+             _notificationHelper.SendAndStoreNotificationAsync(admin.Id, message));
+                await Task.WhenAll(tasks);
                 return Ok(response); // Return success 
             }
             else

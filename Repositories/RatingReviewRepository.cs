@@ -18,7 +18,7 @@ namespace Mero_Doctor_Project.Repositories
         {
             var existing = await _context.RatingReviews
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.DoctorId == dto.DoctorId);
-
+            var doctor=await _context.Doctors.FindAsync(dto.DoctorId);
             if (existing != null)
             {
                 return new ResponseModel<string>
@@ -40,7 +40,7 @@ namespace Mero_Doctor_Project.Repositories
             _context.RatingReviews.Add(entity);
             await _context.SaveChangesAsync();
 
-            return new ResponseModel<string> { Success = true, Message = "Rating added successfully." };
+            return new ResponseModel<string> { Success = true, Message = "Rating added successfully.",Data= doctor.UserId };
         }
 
         public async Task<ResponseModel<string>> UpdateRatingAsync(RatingReviewUpdateDto dto, string userId)

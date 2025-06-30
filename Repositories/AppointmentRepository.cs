@@ -16,26 +16,26 @@ namespace Mero_Doctor_Project.Repositories
         {
             _context = context;
         }
-        public async Task<ResponseModel<string>> BookAppointmentAsync(BookAppointmentDto dto, string patientUserId)
+        public async Task<ResponseModel<AppointmentBookingResponseDto>> BookAppointmentAsync(BookAppointmentDto dto, string patientUserId)
         {
             try
             {
                 var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == patientUserId);
                 if (patient == null)
-                    return new ResponseModel<string> { Success = false, Message = "Patient not found.", Data = null };
+                    return new ResponseModel<AppointmentBookingResponseDto> { Success = false, Message = "Patient not found.", Data = null };
 
                 var availability = await _context.DoctorWeeklyAvailabilities
                     .Include(a => a.TimeRanges).Include(a => a.Doctor)
                     .FirstOrDefaultAsync(a => a.DoctorId == dto.DoctorId && a.AvailableDate == dto.AvailableDate);
 
                 if (availability == null)
-                    return new ResponseModel<string> { Success = false, Message = "Doctor not available on selected date.", Data = null };
+                    return new ResponseModel<AppointmentBookingResponseDto> { Success = false, Message = "Doctor not available on selected date.", Data = null };
 
                 var matchingTimeRange = availability.TimeRanges.FirstOrDefault(tr =>
                     tr.IsAvailable && tr.AvailableTime == dto.AvailableTime);
 
                 if (matchingTimeRange == null)
-                    return new ResponseModel<string>
+                    return new ResponseModel<AppointmentBookingResponseDto>
                     {
                         Success = false,
                         Message = "Time slot not available.",
@@ -48,7 +48,7 @@ namespace Mero_Doctor_Project.Repositories
                     a.AvailableTime == dto.AvailableTime);
 
                 if (hasConflict)
-                    return new ResponseModel<string>
+                    return new ResponseModel<AppointmentBookingResponseDto>
                     {
                         Success = false,
                         Message = "Slot already booked.",
@@ -73,17 +73,16 @@ namespace Mero_Doctor_Project.Repositories
 
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
-
-                return new ResponseModel<string>
+                return new ResponseModel<AppointmentBookingResponseDto>
                 {
                     Success = true,
                     Message = "Appointment created. Proceed with payment.",
-                    Data = transactionId
+                    Data = new AppointmentBookingResponseDto { TransactionId=transactionId,DoctorUserId= availability.Doctor.UserId }
                 };
             }
             catch (Exception ex)
             {
-                return new ResponseModel<string>
+                return new ResponseModel<AppointmentBookingResponseDto>
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}",

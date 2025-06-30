@@ -27,11 +27,11 @@ namespace Mero_Doctor_Project.Repositories
                     Name = userName,
                     CreatedDate = DateTime.UtcNow
                 };
-
+                var doctor=await _context.Blogs.Include(a=>a.Doctor).FirstOrDefaultAsync(b => b.BlogId == dto.BlogId);   
                 _context.BlogComments.Add(comment);
                 await _context.SaveChangesAsync();
 
-                return new ResponseModel<string> { Success = true, Message = "Comment added." };
+                return new ResponseModel<string> { Success = true, Message = "Comment added.",Data=doctor.Doctor.UserId };
             }
             catch (Exception ex)
             {

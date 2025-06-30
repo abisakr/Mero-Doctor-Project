@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Mero_Doctor_Project.Repositories;
 using System.Security.Claims;
+using Mero_Doctor_Project.Helper;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -21,6 +22,7 @@ namespace Mero_Doctor_Project.Controllers
         public BlogLikesController(ILikeRepository likeRepository)
         {
             _likeRepository = likeRepository;
+
         }
 
         [HttpPost("ToggleLike")]
@@ -34,7 +36,10 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _likeRepository.ToggleLikeAsync(dto, userId, userName);
 
             if (result.Success)
+            {
+
                 return Ok(result);
+            }
 
             return BadRequest(result);
         }

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Mero_Doctor_Project.DTOs.BlogsDto;
+using Mero_Doctor_Project.Helper;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -12,10 +13,12 @@ namespace Mero_Doctor_Project.Controllers
     public class BlogCommentsController : ControllerBase
     {
         private readonly IBlogCommentRepository _repo;
+        private readonly NotificationHelper _notificationHelper;
 
-        public BlogCommentsController(IBlogCommentRepository repo)
+        public BlogCommentsController(IBlogCommentRepository repo, NotificationHelper notificationHelper)
         {
             _repo = repo;
+            _notificationHelper = notificationHelper;
         }
 
         [HttpPost("Add")]
@@ -28,7 +31,13 @@ namespace Mero_Doctor_Project.Controllers
          
             var userName = User.FindFirst(ClaimTypes.Name)?.Value;
             var result = await _repo.AddCommentAsync(dto, userId, userName);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                string message = "New Comment On Blog.";
+                await _notificationHelper.SendAndStoreNotificationAsync(result.Data, message);
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         [HttpPut("Update")]

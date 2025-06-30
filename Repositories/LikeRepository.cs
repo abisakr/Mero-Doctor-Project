@@ -4,24 +4,29 @@ using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Mero_Doctor_Project.Helper;
 
 namespace Mero_Doctor_Project.Repositories
 {
     public class LikeRepository : ILikeRepository
     {
         private readonly ApplicationDbContext _context;
-        public LikeRepository(ApplicationDbContext context)
+        private readonly NotificationHelper _notificationHelper;
+
+        public LikeRepository(ApplicationDbContext context, NotificationHelper notificationHelper)
         {
             _context = context;
+            _notificationHelper = notificationHelper;
+
         }
-       
+
         public async Task<ResponseModel<string>> ToggleLikeAsync(LikeToggleDto dto, string userId, string userName)
         {
             try
             {
                 var existingLike = await _context.Likes.FirstOrDefaultAsync(l =>
                     l.BlogId == dto.BlogId && l.UserId == userId);
-
+                var doctor = await _context.Blogs.Include(a => a.Doctor).FirstOrDefaultAsync(b => b.BlogId == dto.BlogId);
                 if (existingLike != null)
                 {
                     // User already liked → unlike by deleting the record
@@ -47,7 +52,8 @@ namespace Mero_Doctor_Project.Repositories
 
                     _context.Likes.Add(like);
                     await _context.SaveChangesAsync();
-
+                    string message = "Your blog received a new like.";
+                    await _notificationHelper.SendAndStoreNotificationAsync(doctor.Doctor.UserId, message);
                     return new ResponseModel<string>
                     {
                         Success = true,

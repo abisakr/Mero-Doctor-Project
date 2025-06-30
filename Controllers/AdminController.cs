@@ -50,7 +50,7 @@ namespace Mero_Doctor_Project.Controllers
 
                 var message = $"Your verification status has been updated to {status}.";
 
-                await _notificationHelper.NotifyDoctorAsync(doctorUserId, message);
+                await _notificationHelper.NotifyUserAsync(doctorUserId, message);
 
                 return Ok(result);
             }

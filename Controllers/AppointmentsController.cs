@@ -17,6 +17,9 @@ using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Net.WebSockets;
 using System.Runtime.Intrinsics.X86;
+using Mero_Doctor_Project.Helper;
+using Microsoft.AspNetCore.Identity;
+using Mero_Doctor_Project.Repositories;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -26,17 +29,23 @@ namespace Mero_Doctor_Project.Controllers
     {
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ApplicationDbContext _context;
-
-        public AppointmentsController(IAppointmentRepository appointmentRepository,ApplicationDbContext context)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFeedbackRepository _feedbackRepository;
+        private readonly NotificationHelper _notificationHelper;
+        public AppointmentsController(UserManager<ApplicationUser> userManager, IAppointmentRepository appointmentRepository,ApplicationDbContext context, NotificationHelper notificationHelper)
         {
             _appointmentRepository = appointmentRepository;
             _context =context;
+            _userManager = userManager;
+            _notificationHelper = notificationHelper;
         }
 
         [HttpPost("bookAppointment")]
         public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentDto dto)
         {
+            
             string patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string patientUserName = User.FindFirst(ClaimTypes.Name)?.Value;
             if (patientUserId == null)
                 return Unauthorized(new ResponseModel<string>
                 {
@@ -46,7 +55,15 @@ namespace Mero_Doctor_Project.Controllers
                 });
 
             var result = await _appointmentRepository.BookAppointmentAsync(dto, patientUserId);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                string patienetMessage = "Appointment Booked.";
+                string doctorMessage = $"New Appointment Alert from: {patientUserName}";
+                await _notificationHelper.SendAndStoreNotificationAsync(patientUserId, patienetMessage);
+                await _notificationHelper.SendAndStoreNotificationAsync(result.Data.DoctorUserId, doctorMessage);//put doctor userId
+               return Ok(new ResponseModel<string> { Success = true, Message = "Appointment created. Proceed with payment.", Data = result.Data.TransactionId });
+            }
+            return BadRequest(result);
         }
 
 
