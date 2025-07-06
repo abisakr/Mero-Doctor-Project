@@ -23,7 +23,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 
 ## 🏗️ Architecture
 
-- **Backend:** ASP.NET Core Web API
+- **Backend:** ASP.NET Core Web API.
 - **Authentication:** ASP.NET Identity with JWT
 - **Design Pattern:** Repository Pattern 
 - **Image Handling:** Static file storage in `wwwroot/images`
