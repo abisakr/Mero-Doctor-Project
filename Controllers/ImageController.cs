@@ -26,8 +26,8 @@ namespace Mero_Doctor_Project.Controllers
 
 
         [Authorize]
-        [HttpPost("uploadProfilePicture")]
-        public async Task<IActionResult> UploadImage(IFormFile file)
+        [HttpPost("uploadOrReplaceProfilePicture")]
+        public async Task<IActionResult> UploadOrReplaceProfilePicture(IFormFile file)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -48,12 +48,15 @@ namespace Mero_Doctor_Project.Controllers
                 });
             }
 
-            if (!file.ContentType.StartsWith("image/"))
+            var permittedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext))
             {
                 return BadRequest(new ResponseModel<string>
                 {
                     Success = false,
-                    Message = "Uploaded file is not an image."
+                    Message = "Uploaded file is not a supported image format."
                 });
             }
 
@@ -67,103 +70,40 @@ namespace Mero_Doctor_Project.Controllers
                 });
             }
 
-            if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+            string folderName = "ProfilePictures";
+            string resultPath;
+
+            if (string.IsNullOrEmpty(user.ProfilePictureUrl))
             {
-                return BadRequest(new ResponseModel<string>
+                // Upload new profile picture
+                resultPath = await _uploadImageHelper.UploadImageAsync(file, folderName);
+                user.ProfilePictureUrl = resultPath;
+            }
+            else
+            {
+                // Replace existing profile picture
+                resultPath = await _uploadImageHelper.ReplaceImageAsync(folderName, user.ProfilePictureUrl, file);
+                if (resultPath == null)
                 {
-                    Success = false,
-                    Message = "Profile picture is already uploaded."
-                });
+                    return NotFound(new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Original image not found for replacement."
+                    });
+                }
+
+                user.ProfilePictureUrl = resultPath;
             }
 
-            string folderName = "ProfilePictures";
-            string filePath = await _uploadImageHelper.UploadImageAsync(file, folderName);
-
-            user.ProfilePictureUrl = filePath;
             await _context.SaveChangesAsync();
 
             return Ok(new ResponseModel<string>
             {
                 Success = true,
-                Message = "Profile picture uploaded successfully.",
-                Data = filePath
-            });
-        }
-
-
-
-
-        [Authorize]
-        [HttpPost("replaceProfilePicture")]
-        public async Task<IActionResult> ReplaceProfilePicture(IFormFile newFile)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "Please login."
-                });
-            }
-
-            if (newFile == null || newFile.Length == 0)
-            {
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "No new file uploaded."
-                });
-            }
-
-            if (!newFile.ContentType.StartsWith("image/"))
-            {
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "Uploaded file is not an image."
-                });
-            }
-
-            // Fetch user
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                return NotFound(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "User not found."
-                });
-            }
-            if(user.ProfilePictureUrl==null)
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "No previous profile picture found to replace."
-
-                });
-            string folderName = "ProfilePictures";
-
-            // Replace image file
-            var newFilePath = await _uploadImageHelper.ReplaceImageAsync(folderName, user.ProfilePictureUrl, newFile);
-            if (newFilePath == null)
-            {
-                return NotFound(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = "Original image not found for replacement."
-                });
-            }
-
-            // Update user record
-            user.ProfilePictureUrl = newFilePath;
-            await _context.SaveChangesAsync();
-
-            return Ok(new ResponseModel<string>
-            {
-                Success = true,
-                Message = "Profile picture replaced successfully.",
-                Data = newFilePath
+                Message = string.IsNullOrEmpty(user.ProfilePictureUrl)
+                    ? "Profile picture uploaded successfully."
+                    : "Profile picture replaced successfully.",
+                Data = resultPath
             });
         }
 
