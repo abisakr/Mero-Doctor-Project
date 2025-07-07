@@ -23,7 +23,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 
 ## 🏗️ Architecture
 
-- **Backend:** ASP.NET Core Web API
+- **Backend:** ASP.NET Core Web API.
 - **Authentication:** ASP.NET Identity with JWT
 - **Design Pattern:** Repository Pattern 
 - **Image Handling:** Static file storage in `wwwroot/images`
@@ -55,7 +55,7 @@ Open `appsettings.json` and replace the server name with your actual SQL Server 
 
 ```json
   "ConnectionStrings": {
-      "DefaultConnection": "Server=YOUR_SERVER_NAME; Database=MeroDoctorAppDb; Trusted_Connection=True; TrustServerCertificate=True; Connection Timeout=30; Max Pool Size=200; MultipleActiveResultSets=True"
+      "DefaultConnection": "Server=YOUR_SERVER_NAME; Database=MeroDoctorAppDb; Trusted_Connection=True; TrustServerCertificate=True; Connection Timeout=30;  MultipleActiveResultSets=True"
   }
 ```
 ### 2. Update the Database
