@@ -19,7 +19,7 @@ namespace Mero_Doctor_Project.Models
         public string? TransactionId { get; set; }
         public string? TransactionStatus { get; set; } // Pending, Complete, Failed
         public DateTime? PaymentDate { get; set; }
-        public bool Visited { get; set; } // Pending, Complete, Failed
+        public bool Visited { get; set; } 
         public Patient Patient { get; set; }
         public Doctor Doctor { get; set; }
 

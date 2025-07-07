@@ -21,7 +21,8 @@ namespace Mero_Doctor_Project.Helper
                 var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId),
-            new Claim(ClaimTypes.Name, fullName)
+            new Claim(ClaimTypes.Name, fullName),
+           
         };
 
                 if (roles != null)

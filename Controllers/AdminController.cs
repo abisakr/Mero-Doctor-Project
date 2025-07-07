@@ -101,7 +101,7 @@ namespace Mero_Doctor_Project.Controllers
 
         [HttpGet("profile")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
-        public async Task<ActionResult<ResponseModel<AdminDashboardViewDto>>> AdminProfile()
+        public async Task<ActionResult<ResponseModel<GetAdminDto>>> AdminProfile()
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _adminRepository.GetAdminById(userId);
