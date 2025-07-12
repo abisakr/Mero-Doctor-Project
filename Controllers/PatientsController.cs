@@ -33,6 +33,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpGet("getAllPatients")]
+
         public async Task<IActionResult> GetAllPatients()
         {
             var patients = await _patientRepository.GetAllPatientsAsync();
