@@ -33,7 +33,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // GET: api/Specialization/5
-        [HttpGet("getById{id}")]
+        [HttpGet("getById/{id}")]
         public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> GetById(int id)
         {
             var result = await _specializationRepository.GetByIdAsync(id);
@@ -60,7 +60,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // PUT: api/Specialization/5
-        [HttpPut("Update{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> Update(int id, [FromBody] SetSpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
@@ -76,7 +76,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // DELETE: api/Specialization/5
-        [HttpDelete("Delete{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult<ResponseModel<bool>>> Delete(int id)
         {
             var result = await _specializationRepository.DeleteAsync(id);
