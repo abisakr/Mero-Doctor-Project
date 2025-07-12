@@ -4,6 +4,7 @@ using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -44,7 +45,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // POST: api/Specialization
-        [HttpPost("Add")]
+        [HttpPost("add")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
         public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> Add([FromBody] SetSpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
@@ -60,7 +62,9 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // PUT: api/Specialization/5
-        [HttpPut("Update/{id}")]
+        [HttpPut("update/{id}")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
+
         public async Task<ActionResult<ResponseModel<SetSpecializationDto>>> Update(int id, [FromBody] SetSpecializationDto specializationDto)
         {
             if (!ModelState.IsValid)
@@ -76,7 +80,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         // DELETE: api/Specialization/5
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("delete/{id}")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
         public async Task<ActionResult<ResponseModel<bool>>> Delete(int id)
         {
             var result = await _specializationRepository.DeleteAsync(id);
