@@ -4,6 +4,7 @@ using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Repositories;
 using Mero_Doctor_Project.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +46,8 @@ namespace Mero_Doctor_Project.Controllers
         }
 
 
-        [HttpGet("All")]
+        [HttpGet("getAllFeedbacks")]
+        [Authorize]
         public async Task<IActionResult> GetAllFeedbacks()
         {
             var result = await _feedbackRepository.GetAllFeedbacksAsync();
