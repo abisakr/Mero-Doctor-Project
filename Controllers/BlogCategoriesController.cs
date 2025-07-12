@@ -18,8 +18,8 @@ namespace Mero_Doctor_Project.Controllers
             _categoryRepository = categoryRepository;
         }
 
-        [HttpPost("Add")]
-        //[Authorize(Roles = "Admin")]
+        [HttpPost("add")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
         public async Task<IActionResult> Add([FromBody] BlogCategoryAddDto dto)
         {
             var result = await _categoryRepository.AddAsync(dto);
@@ -28,8 +28,9 @@ namespace Mero_Doctor_Project.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("Update")]
-        //[Authorize(Roles = "Admin")]
+        [HttpPut("update")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
+
         public async Task<IActionResult> Update([FromBody] BlogCategoryUpdateDto dto)
         {
             var result = await _categoryRepository.UpdateAsync(dto);
@@ -38,8 +39,8 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
-        [HttpDelete("Delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [HttpDelete("delete/{id}")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _categoryRepository.DeleteAsync(id);
@@ -48,7 +49,7 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
-        [HttpGet("All")]
+        [HttpGet("getAllCategories")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _categoryRepository.GetAllAsync();
