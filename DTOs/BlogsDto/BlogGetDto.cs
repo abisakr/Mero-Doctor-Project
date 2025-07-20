@@ -13,5 +13,6 @@ namespace Mero_Doctor_Project.DTOs.BlogsDto
         public string DoctorName { get; set; }    
         public string BlogPictureUrl { get; set; }
         public int TotalLikes { get; set; }
+        public bool IsLikedByUser { get; set; }
     }
 }

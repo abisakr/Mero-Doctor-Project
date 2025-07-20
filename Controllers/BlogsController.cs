@@ -68,16 +68,22 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
+        [Authorize]
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllBlogs()
         {
-            var result = await _blogRepository.GetAllAsync();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated.");
+
+            var result = await _blogRepository.GetAllAsync(userId);
 
             if (result.Success)
                 return Ok(result);
 
             return NotFound(result);
         }
+
 
         [HttpGet("GetByDoctor")]
         [Authorize(Roles = "Doctor")]

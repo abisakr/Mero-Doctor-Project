@@ -135,7 +135,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<BlogGetAllDto>> GetAllAsync()
+        public async Task<ResponseModel<BlogGetAllDto>> GetAllAsync(string currentUserId)
         {
             try
             {
@@ -158,7 +158,8 @@ namespace Mero_Doctor_Project.Repositories
                         DoctorName = blog.Doctor?.User?.FullName,
                         ProfilePicture = blog.Doctor.User.ProfilePictureUrl,
                         BlogPictureUrl = blog.BlogPictureUrl,
-                        TotalLikes = blog.Likes?.Count ?? 0
+                        TotalLikes = blog.Likes?.Count ?? 0,
+                        IsLikedByUser = blog.Likes.Any(like => like.UserId == currentUserId)
                     }).ToList()
                 };
 
@@ -169,6 +170,7 @@ namespace Mero_Doctor_Project.Repositories
                 return new ResponseModel<BlogGetAllDto> { Success = false, Message = $"Error: {ex.Message}" };
             }
         }
+
 
         public async Task<ResponseModel<BlogGetAllDto>> GetBlogsByDoctorAsync(string userId)
         {
