@@ -41,6 +41,7 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpPost("bookAppointment")]
+        [Authorize]
         public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentDto dto)
         {
             
@@ -131,6 +132,7 @@ namespace Mero_Doctor_Project.Controllers
 
 
         [HttpPost("confirm-payment")]
+        [Authorize]
         public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationDto dto)
         {
             var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
@@ -143,28 +145,46 @@ namespace Mero_Doctor_Project.Controllers
             });
 
             appointment.Status = AppointmentStatus.Accepted;
-            appointment.TransactionStatus = "Complete";
+            appointment.TransactionStatus = "Completed";
             appointment.PaymentDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return Ok("Payment confirmed");
+            return Ok(new ResponseModel<string>
+            {
+                Success = false,
+                Message = "Payment confirmed",
+                Data = null
+            });
+          
         }
 
 
         [HttpPost("fail-payment")]
+        [Authorize]
         public async Task<IActionResult> FailPayment([FromBody] PaymentConfirmationDto dto)
         {
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
 
             if (appointment == null)
-                return NotFound("Appointment not found");
+                return
+              NotFound(new ResponseModel<string>
+              {
+                  Success = false,
+                  Message = "Appointment not found",
+                  Data = null
+              });
 
             appointment.Status = AppointmentStatus.Rejected;
             appointment.TransactionStatus = "Failed";
             await _context.SaveChangesAsync();
 
-            return Ok("Payment marked as failed");
+            return Ok(new ResponseModel<string>
+            {
+                Success = false,
+                Message = "Payment marked as failed",
+                Data = null
+            });
         }
 
 
