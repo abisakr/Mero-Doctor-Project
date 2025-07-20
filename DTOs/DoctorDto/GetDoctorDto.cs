@@ -6,6 +6,7 @@ namespace Mero_Doctor_Project.DTOs.DoctorDto
     public class GetDoctorDto
     {
         public string UserId { get; set; }
+        public int  DoctorId { get; set; }
         public string FullName { get; set; } 
         public string RegistrationId { get; set; }
         public string? ProfilePictureUrl { get; set; }

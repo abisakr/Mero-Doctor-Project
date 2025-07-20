@@ -92,6 +92,7 @@ namespace Mero_Doctor_Project.Repositories
                 var dtoList = doctors.Select(doctor => new GetDoctorDto
                 {
                     UserId=doctor.UserId,
+                    DoctorId=doctor.DoctorId,
                     FullName = doctor.User.FullName,
                     Email = doctor.User.Email,
                     PhoneNumber = doctor.User.PhoneNumber,
@@ -135,6 +136,7 @@ namespace Mero_Doctor_Project.Repositories
                 var dtoList = doctors.Select(doctor => new GetDoctorDto
                 {
                     UserId=doctor.UserId,
+                    DoctorId=doctor.DoctorId,
                     FullName = doctor.User.FullName,
                     Email = doctor.User.Email,
                     PhoneNumber = doctor.User.PhoneNumber,
