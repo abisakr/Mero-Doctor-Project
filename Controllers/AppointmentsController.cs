@@ -117,7 +117,7 @@ namespace Mero_Doctor_Project.Controllers
                     Data = null
                 });
 
-            var result = await _appointmentRepository.GetUpcommingAppointmentsAsync();
+            var result = await _appointmentRepository.GetAllUpcomingAppointmentsAsync();
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
