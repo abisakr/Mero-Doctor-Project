@@ -19,5 +19,6 @@ namespace Mero_Doctor_Project.DTOs.DoctorDto
         public string SpecializationName { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public double AverageRating { get; set; }
     }
 }

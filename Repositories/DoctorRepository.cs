@@ -168,6 +168,60 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+        public async Task<ResponseModel<List<GetDoctorDto>>> GetAllTopDoctorsAsync()
+        {
+            try
+            {
+                var topDoctors = await _context.Doctors
+                    .Include(d => d.User)
+                    .Include(d => d.Specialization)
+                    .Include(d => d.Ratings)
+                    .Select(d => new
+                    {
+                        Doctor = d,
+                        AverageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.Rating) : 0
+                    })
+                    .OrderByDescending(x => x.AverageRating)
+                    .ThenBy(x => x.Doctor.User.FullName)
+                    .Take(10)
+                    .ToListAsync();
+
+                var dtoList = topDoctors.Select(x => new GetDoctorDto
+                {
+                    UserId = x.Doctor.UserId,
+                    DoctorId = x.Doctor.DoctorId,
+                    FullName = x.Doctor.User.FullName,
+                    Email = x.Doctor.User.Email,
+                    PhoneNumber = x.Doctor.User.PhoneNumber,
+                    ProfilePictureUrl = x.Doctor.User.ProfilePictureUrl,
+                    RegistrationId = x.Doctor.RegistrationId,
+                    Status = x.Doctor.Status.ToString(),
+                    Degree = x.Doctor.Degree,
+                    Experience = x.Doctor.Experience,
+                    ClinicAddress = x.Doctor.ClinicAddress,
+                    SpecializationName = x.Doctor.Specialization?.Name,
+                    Latitude = x.Doctor.User.Latitude,
+                    Longitude = x.Doctor.User.Longitude,
+                    AverageRating = (int)Math.Round(x.AverageRating) // 👈 Rounded to nearest integer
+                }).ToList();
+
+                return new ResponseModel<List<GetDoctorDto>>
+                {
+                    Success = true,
+                    Message = "Top 10 doctors fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetDoctorDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
 
 
 

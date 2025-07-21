@@ -111,5 +111,18 @@ namespace Mero_Doctor_Project.Controllers
 
             return Ok(doctors);
         }
+
+        [HttpGet("getAllTopDoctors")]
+        public async Task<IActionResult> GetAllTopDoctors()
+        {
+            var doctors = await _doctor.GetAllTopDoctorsAsync();
+
+            if (doctors.Data.Count == 0)
+            {
+                return NotFound(doctors);
+            }
+
+            return Ok(doctors);
+        }
     }
 }

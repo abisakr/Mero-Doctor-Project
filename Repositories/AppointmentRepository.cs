@@ -259,6 +259,157 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysDoctorAppontmentsAsync(string doctorUserId)
+        {
+            try
+            {
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(p => p.UserId == doctorUserId);
+                if (doctor == null)
+                {
+                    return new ResponseModel<List<GetAppointmentDto>>
+                    {
+                        Success = false,
+                        Message = "Doctor not found.",
+                        Data = null
+                    };
+                }
+
+                var today = DateOnly.FromDateTime(DateTime.Today);
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.DoctorId == doctor.DoctorId && a.AvailableDate == today)
+                    .Include(a => a.Patient)
+                        .ThenInclude(p => p.User)
+                    .OrderByDescending(a => a.BookingDateTime)
+                    .ToListAsync();
+
+                var dtoList = appointments.Select(a => new GetAppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId, // ⚠️ Fixed: was assigning DoctorId by mistake
+                    Status = a.Status.ToString(),
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
+                    PatientName = a.Patient.User.FullName,
+                    DoctorName = null // You can fill if needed
+                }).ToList();
+
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Today's appointments fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysPatientAppontmentsAsync(string patientUserId)
+        {
+            try
+            {
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == patientUserId);
+                if (patient == null)
+                {
+                    return new ResponseModel<List<GetAppointmentDto>>
+                    {
+                        Success = false,
+                        Message = "Patient not found.",
+                        Data = null
+                    };
+                }
+
+                var today = DateOnly.FromDateTime(DateTime.Today);
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.PatientId == patient.PatientId && a.AvailableDate == today)
+                    .Include(a => a.Doctor)
+                        .ThenInclude(d => d.User)
+                    .OrderByDescending(a => a.BookingDateTime)
+                    .ToListAsync();
+
+                var dtoList = appointments.Select(a => new GetAppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId,
+                    Status = a.Status.ToString(),
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
+                    DoctorName = a.Doctor.User.FullName,
+                    PatientName = null // Optional: Add patient.User.FullName if needed
+                }).ToList();
+
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Today's appointments fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync()
+        {
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+
+                var appointments = await _context.Appointments
+                    .Where(a => a.AvailableDate >= today)
+                    .Include(a => a.Doctor)
+                        .ThenInclude(d => d.User)
+                    .OrderBy(a => a.AvailableDate)
+                    .ThenBy(a => a.AvailableTime)
+                    .ToListAsync();
+
+                var dtoList = appointments.Select(a => new GetAppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,              
+                    Status = a.Status.ToString(),
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
+                    DoctorName = a.Doctor.User.FullName,
+                }).ToList();
+
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Upcoming appointments for all doctors fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetAppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
 
     }
 

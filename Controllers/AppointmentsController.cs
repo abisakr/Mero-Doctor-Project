@@ -67,6 +67,59 @@ namespace Mero_Doctor_Project.Controllers
             return BadRequest(result);
         }
 
+        [HttpPut("getTodaysDoctorAppontmentsAsync")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        public async Task<IActionResult> GetTodaysAppontment()
+        {
+            string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (doctorUserId == null)
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: Doctor user ID not found.",
+                    Data = null
+                });
+
+            var result = await _appointmentRepository.GetTodaysDoctorAppontmentsAsync(doctorUserId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("getTodaysPatientAppontment")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
+        public async Task<IActionResult> GetTodaysPatientAppontment()
+        {
+            string patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (patientUserId == null)
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: Doctor user ID not found.",
+                    Data = null
+                });
+
+            var result = await _appointmentRepository.GetTodaysPatientAppontmentsAsync(patientUserId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("getUpcommingAppointments")]
+        [Authorize]
+        public async Task<IActionResult> GetUpcommingAppointmentsAsync()
+        {
+            string user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (user == null)
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: User not found.",
+                    Data = null
+                });
+
+            var result = await _appointmentRepository.GetUpcommingAppointmentsAsync();
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
 
         [HttpPut("update-status")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
@@ -85,6 +138,7 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _appointmentRepository.UpdateAppointmentStatusAsync(dto, doctorUserId);
             return result.Success ? Ok(result) : BadRequest(result);
         }
+
         [HttpGet("doctorAppointments")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         public async Task<IActionResult> GetAppointmentsByDoctor()
