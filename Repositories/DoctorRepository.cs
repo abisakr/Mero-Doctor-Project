@@ -66,7 +66,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
+      
         public async Task<ResponseModel<List<GetDoctorDto>>> GetDoctorsByFilterAsync(int? specializationId, string? doctorName)
         {
             try

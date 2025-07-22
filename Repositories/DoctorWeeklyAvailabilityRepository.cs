@@ -96,7 +96,69 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+        public async Task<ResponseModel<List<GetDoctorAvailabilityDto>>> GetAllUpcommingAvailabilities()
+        {
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
 
+                var allUpcomingAvailabilities = await _context.DoctorWeeklyAvailabilities
+                    .Where(a => a.AvailableDate >= today)
+                    .Include(a => a.Doctor).
+                    Include(a => a.Doctor.User)
+                    .Include(a => a.TimeRanges)
+                    .OrderBy(a => a.Doctor.UserId)
+                    .ThenBy(a => a.AvailableDate)
+                    .ToListAsync();
+
+                if (!allUpcomingAvailabilities.Any())
+                {
+                    return new ResponseModel<List<GetDoctorAvailabilityDto>>
+                    {
+                        Success = false,
+                        Message = "No upcoming or today's availability found for any doctor.",
+                        Data = new List<GetDoctorAvailabilityDto>()
+                    };
+                }
+
+                var groupedByDoctor = allUpcomingAvailabilities
+                    .GroupBy(a => a.Doctor.UserId)
+                    .Select(group => new GetDoctorAvailabilityDto
+                    {
+                        DoctorUserId = group.Key,
+                        ProfilePictureUrl = group.First().Doctor.User.ProfilePictureUrl,
+                        Availabilities = group.Select(a => new GetDayAvailabilityDto
+                        {
+                            DoctorWeeklyAvailabilityId = a.DoctorWeeklyAvailabilityId,
+                            AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                            DayOfWeek = a.AvailableDate.DayOfWeek.ToString(),
+                            TimeRanges = a.TimeRanges.Select(tr => new GetTimeRangeDto
+                            {
+                                TimeRangeId = tr.DoctorWeeklyTimeRangeId,
+                                AvailableTime = tr.AvailableTime.ToString("hh:mm tt"),
+                                IsAvailable = tr.IsAvailable ? "Yes" : "No"
+                            }).ToList()
+                        }).ToList()
+                    })
+                    .ToList();
+
+                return new ResponseModel<List<GetDoctorAvailabilityDto>>
+                {
+                    Success = true,
+                    Message = "All upcoming and today's availabilities fetched successfully.",
+                    Data = groupedByDoctor
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetDoctorAvailabilityDto>>
+                {
+                    Success = false,
+                    Message = $"An error occurred: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
         public async Task<ResponseModel<GetDoctorAvailabilityDto>> GetDoctorAvailabilityAsync(string doctorId)
         {
             try
@@ -150,6 +212,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+     
 
         public async Task<ResponseModel<string>> DeleteDoctorDayAvailabililtyAsync(DeleteWeekdayDto dto, string userId)
         {

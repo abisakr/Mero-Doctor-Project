@@ -10,6 +10,5 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
         Task<ResponseModel<List<GetDoctorDto>>> GetDoctorsByFilterAsync(int? specializationId, string? doctorName);
         Task<ResponseModel<List<GetDoctorDto>>> GetAllDoctorsAsync();
         Task<ResponseModel<List<GetDoctorDto>>> GetAllTopDoctorsAsync();
-
     }
 }

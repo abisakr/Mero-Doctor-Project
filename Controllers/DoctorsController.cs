@@ -51,6 +51,17 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
+        [HttpGet("getAllUpcommingAvailabilities")]
+        public async Task<IActionResult> GetAllUpcommingAvailabilities()
+        {
+            var result = await _doctorAvailabilityRepository.GetAllUpcommingAvailabilities();
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         [HttpDelete("delete-day-Schedule")]
         public async Task<IActionResult> DeleteDoctorDayAvailabililtyAsync([FromBody] DeleteWeekdayDto dto)
