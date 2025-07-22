@@ -104,8 +104,10 @@ namespace Mero_Doctor_Project.Repositories
 
                 var allUpcomingAvailabilities = await _context.DoctorWeeklyAvailabilities
                     .Where(a => a.AvailableDate >= today)
-                    .Include(a => a.Doctor).
-                    Include(a => a.Doctor.User)
+                    .Include(a => a.Doctor)
+                        .ThenInclude(d => d.User)
+                    .Include(a => a.Doctor)
+                        .ThenInclude(d => d.Specialization)
                     .Include(a => a.TimeRanges)
                     .OrderBy(a => a.Doctor.UserId)
                     .ThenBy(a => a.AvailableDate)
@@ -123,22 +125,29 @@ namespace Mero_Doctor_Project.Repositories
 
                 var groupedByDoctor = allUpcomingAvailabilities
                     .GroupBy(a => a.Doctor.UserId)
-                    .Select(group => new GetDoctorAvailabilityDto
+                    .Select(group =>
                     {
-                        DoctorUserId = group.Key,
-                        ProfilePictureUrl = group.First().Doctor.User.ProfilePictureUrl,
-                        Availabilities = group.Select(a => new GetDayAvailabilityDto
+                        var first = group.First();
+                        return new GetDoctorAvailabilityDto
                         {
-                            DoctorWeeklyAvailabilityId = a.DoctorWeeklyAvailabilityId,
-                            AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
-                            DayOfWeek = a.AvailableDate.DayOfWeek.ToString(),
-                            TimeRanges = a.TimeRanges.Select(tr => new GetTimeRangeDto
+                            DoctorUserId = first.Doctor.UserId,
+                            DoctorId = first.Doctor.DoctorId.ToString(),
+                            DoctorName = first.Doctor.User.FullName,
+                            ProfilePictureUrl = first.Doctor.User.ProfilePictureUrl,
+                            SpecialzationName = first.Doctor.Specialization?.Name ?? "N/A",
+                            Availabilities = group.Select(a => new GetDayAvailabilityDto
                             {
-                                TimeRangeId = tr.DoctorWeeklyTimeRangeId,
-                                AvailableTime = tr.AvailableTime.ToString("hh:mm tt"),
-                                IsAvailable = tr.IsAvailable ? "Yes" : "No"
+                                DoctorWeeklyAvailabilityId = a.DoctorWeeklyAvailabilityId,
+                                AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                                DayOfWeek = a.AvailableDate.DayOfWeek.ToString(),
+                                TimeRanges = a.TimeRanges.Select(tr => new GetTimeRangeDto
+                                {
+                                    TimeRangeId = tr.DoctorWeeklyTimeRangeId,
+                                    AvailableTime = tr.AvailableTime.ToString("hh:mm tt"),
+                                    IsAvailable = tr.IsAvailable ? "Yes" : "No"
+                                }).ToList()
                             }).ToList()
-                        }).ToList()
+                        };
                     })
                     .ToList();
 
@@ -159,6 +168,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<GetDoctorAvailabilityDto>> GetDoctorAvailabilityAsync(string doctorId)
         {
             try
