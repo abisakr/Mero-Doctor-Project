@@ -20,5 +20,6 @@ namespace Mero_Doctor_Project.DTOs.DoctorDto
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double AverageRating { get; set; }
+        public int TodaysAppointments { get; set; }
     }
 }

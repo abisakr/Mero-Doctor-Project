@@ -22,6 +22,11 @@ namespace Mero_Doctor_Project.Repositories
                     .Include(d => d.User)
                     .Include(d => d.Specialization)
                     .FirstOrDefaultAsync(d => d.UserId == userId);
+                var today = DateOnly.FromDateTime(DateTime.Today);  // Convert to DateOnly
+                var todaysAppointmentsCount = await _context.Appointments
+                    .Where(a => a.DoctorId == doctor.DoctorId && a.AvailableDate== today)
+                    .CountAsync();
+
 
                 if (doctor == null)
                 {
@@ -31,10 +36,10 @@ namespace Mero_Doctor_Project.Repositories
                         Message = "Doctor not found."
                     };
                 }
-
                 var dto = new GetDoctorDto
                 {
-                    UserId=doctor.UserId,
+                    UserId = doctor.UserId,
+                    DoctorId = doctor.DoctorId,
                     FullName = doctor.User.FullName,
                     Email = doctor.User.Email,
                     PhoneNumber = doctor.User.PhoneNumber,
@@ -46,8 +51,10 @@ namespace Mero_Doctor_Project.Repositories
                     ClinicAddress = doctor.ClinicAddress,
                     SpecializationName = doctor.Specialization.Name,
                     Latitude = doctor.User.Latitude,
-                    Longitude = doctor.User.Longitude
+                    Longitude = doctor.User.Longitude,
+                    TodaysAppointments = todaysAppointmentsCount // <-- Assign the count here
                 };
+
 
                 return new ResponseModel<GetDoctorDto>
                 {
