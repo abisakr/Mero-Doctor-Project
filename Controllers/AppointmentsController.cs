@@ -67,7 +67,7 @@ namespace Mero_Doctor_Project.Controllers
             return BadRequest(result);
         }
 
-        [HttpPut("getTodaysDoctorAppontmentsAsync")]
+        [HttpGet("getTodaysDoctorAppontmentsAsync")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
         public async Task<IActionResult> GetTodaysAppontment()
         {
@@ -85,7 +85,7 @@ namespace Mero_Doctor_Project.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPut("getTodaysPatientAppontment")]
+        [HttpGet("getTodaysPatientAppontment")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
         public async Task<IActionResult> GetTodaysPatientAppontment()
         {
@@ -103,7 +103,7 @@ namespace Mero_Doctor_Project.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPut("getUpcommingAppointments")]
+        [HttpGet("getUpcommingAppointments")]
         [Authorize]
         public async Task<IActionResult> GetUpcommingAppointmentsAsync()
         {
