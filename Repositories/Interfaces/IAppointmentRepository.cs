@@ -13,7 +13,7 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
         Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysPatientAppontmentsAsync(string patientUserId);
         Task<ResponseModel<List<GetAppointmentDto>>> GetAppointmentsByPatientAsync(string patientUserId);
         Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync();
-
+        Task<ResponseModel<string>> UpdateAppointmentVisitedAsync(int appointmentId, string doctorUserId);
     }
 }
 

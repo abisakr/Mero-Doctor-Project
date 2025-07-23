@@ -92,6 +92,56 @@ namespace Mero_Doctor_Project.Repositories
         }
 
 
+        public async Task<ResponseModel<string>> UpdateAppointmentVisitedAsync(int appointmentId, string doctorUserId)
+        {
+            try
+            {
+                var appointment = await _context.Appointments
+                    .Include(a => a.Doctor)
+                    .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+
+                if (appointment == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Appointment not found.",
+                        Data = null
+                    };
+                }
+
+                // Check if the doctor is authorized
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == appointment.DoctorId && d.UserId == doctorUserId);
+                if (doctor == null)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Unauthorized. You do not have permission to update this appointment.",
+                        Data = null
+                    };
+                }
+
+                appointment.Visited = true;
+                await _context.SaveChangesAsync();
+
+                return new ResponseModel<string>
+                {
+                    Success = true,
+                    Message = "Appointment marked as visited.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
 
         public async Task<ResponseModel<string>> UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto dto, string doctorUserId)
         {
@@ -277,7 +327,10 @@ namespace Mero_Doctor_Project.Repositories
                 var today = DateOnly.FromDateTime(DateTime.Today);
 
                 var appointments = await _context.Appointments
-                    .Where(a => a.DoctorId == doctor.DoctorId && a.AvailableDate == today)
+                    .Where(a =>
+                        a.DoctorId == doctor.DoctorId &&
+                        a.AvailableDate == today &&
+                        !a.Visited) // ❗ Exclude visited appointments
                     .Include(a => a.Patient)
                         .ThenInclude(p => p.User)
                     .OrderByDescending(a => a.BookingDateTime)
@@ -287,19 +340,19 @@ namespace Mero_Doctor_Project.Repositories
                 {
                     AppointmentId = a.AppointmentId,
                     DoctorId = a.DoctorId,
-                    PatientId = a.PatientId, // ⚠️ Fixed: was assigning DoctorId by mistake
+                    PatientId = a.PatientId,
                     Status = a.Status.ToString(),
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
                     PatientName = a.Patient.User.FullName,
-                    DoctorName = null // You can fill if needed
+                    DoctorName = null // Optional
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = true,
-                    Message = "Today's appointments fetched successfully.",
+                    Message = "Today's unvisited appointments fetched successfully.",
                     Data = dtoList
                 };
             }
@@ -313,6 +366,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysPatientAppontmentsAsync(string patientUserId)
         {
             try
