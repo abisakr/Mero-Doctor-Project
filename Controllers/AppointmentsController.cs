@@ -222,7 +222,7 @@ namespace Mero_Doctor_Project.Controllers
 
             return Ok(new ResponseModel<string>
             {
-                Success = false,
+                Success = true,
                 Message = "Payment confirmed",
                 Data = null
             });
@@ -252,7 +252,7 @@ namespace Mero_Doctor_Project.Controllers
 
             return Ok(new ResponseModel<string>
             {
-                Success = false,
+                Success = true,h
                 Message = "Payment marked as failed",
                 Data = null
             });
