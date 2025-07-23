@@ -14,6 +14,7 @@ namespace Mero_Doctor_Project.DTOs.AppointmentDto
             public string BookingDateTime { get; set; }
             public string DoctorName { get; set; }
             public string PatientName { get; set; }
+            public string ProfilePictureUrl { get; set; } 
 
     }
 }

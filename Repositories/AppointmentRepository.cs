@@ -308,7 +308,6 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysDoctorAppontmentsAsync(string doctorUserId)
         {
             try
@@ -329,11 +328,12 @@ namespace Mero_Doctor_Project.Repositories
                 var appointments = await _context.Appointments
                     .Where(a =>
                         a.DoctorId == doctor.DoctorId &&
-                        a.AvailableDate == today &&
-                        !a.Visited) // ❗ Exclude visited appointments
+                        a.AvailableDate >= today &&
+                        !a.Visited)
                     .Include(a => a.Patient)
                         .ThenInclude(p => p.User)
-                    .OrderByDescending(a => a.BookingDateTime)
+                    .OrderBy(a => a.AvailableDate)
+                    .ThenBy(a => a.AvailableTime)
                     .ToListAsync();
 
                 var dtoList = appointments.Select(a => new GetAppointmentDto
@@ -346,13 +346,14 @@ namespace Mero_Doctor_Project.Repositories
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
                     PatientName = a.Patient.User.FullName,
-                    DoctorName = null // Optional
+                    ProfilePictureUrl = a.Patient.User.ProfilePictureUrl, // ✅ Added
+                    DoctorName = null
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = true,
-                    Message = "Today's unvisited appointments fetched successfully.",
+                    Message = "Upcoming unvisited appointments fetched successfully.",
                     Data = dtoList
                 };
             }
@@ -385,10 +386,11 @@ namespace Mero_Doctor_Project.Repositories
                 var today = DateOnly.FromDateTime(DateTime.Today);
 
                 var appointments = await _context.Appointments
-                    .Where(a => a.PatientId == patient.PatientId && a.AvailableDate == today)
+                    .Where(a => a.PatientId == patient.PatientId && a.AvailableDate >= today)
                     .Include(a => a.Doctor)
                         .ThenInclude(d => d.User)
-                    .OrderByDescending(a => a.BookingDateTime)
+                    .OrderBy(a => a.AvailableDate)
+                    .ThenBy(a => a.AvailableTime)
                     .ToListAsync();
 
                 var dtoList = appointments.Select(a => new GetAppointmentDto
@@ -401,13 +403,14 @@ namespace Mero_Doctor_Project.Repositories
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
                     DoctorName = a.Doctor.User.FullName,
-                    PatientName = null // Optional: Add patient.User.FullName if needed
+                    ProfilePictureUrl = a.Doctor.User.ProfilePictureUrl, // ✅ Added
+                    PatientName = null
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
                 {
                     Success = true,
-                    Message = "Today's appointments fetched successfully.",
+                    Message = "Upcoming appointments fetched successfully.",
                     Data = dtoList
                 };
             }
@@ -421,6 +424,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync()
         {
             try
