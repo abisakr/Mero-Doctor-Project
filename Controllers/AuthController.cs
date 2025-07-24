@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Net;
+using System.Net.Mail;
 using System.Reflection.Metadata;
 using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.DTOs.AuthDto;
@@ -65,12 +66,32 @@ namespace Mero_Doctor_Project.Controllers
                 });
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var resetToken = WebUtility.UrlEncode(token);
+            var resetLink = $"merodoctor://reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+
+            // Send Email
+            string fromMail = "abiskar.a@gmail.com";
+            string fromPassword = "ejoooddorojxudoeX";
+
+            MailMessage message = new MailMessage();
+            message.From = new MailAddress(fromMail);
+            message.Subject = "Reset Your Password";
+            message.To.Add(new MailAddress(user.Email));
+            message.Body = $"<html><body>Click <a href='{resetLink}'>here</a> to reset your password.</body></html>";
+            message.IsBodyHtml = true;
+
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential(fromMail, fromPassword),
+                EnableSsl = true,
+            };
+
+            await smtpClient.SendMailAsync(message);
             return  Ok(new ResponseModel<string>
                 {
                     Success = true,
-                    Message = "Token Sent.",
-                    Data = resetToken
+                    Message = "Reset link is sent if Email is correct.",
+                    Data = null
             });  
         }
 

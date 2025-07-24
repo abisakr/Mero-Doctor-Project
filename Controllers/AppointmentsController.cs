@@ -120,10 +120,10 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _appointmentRepository.GetAllUpcomingAppointmentsAsync();
             return result.Success ? Ok(result) : BadRequest(result);
         }
-        [HttpPut("update-visited")]
-        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
-        public async Task<IActionResult> UpdateAppointmentVisited([FromBody] UpdateVisitedDto dto)
-        {
+            [HttpPut("update-visited")]
+             [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+             public async Task<IActionResult> UpdateAppointmentVisited([FromBody] UpdateVisitedDto dto)
+              {
             string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (doctorUserId == null)
@@ -134,9 +134,9 @@ namespace Mero_Doctor_Project.Controllers
                     Data = null
                 });
 
-            var result = await _appointmentRepository.UpdateAppointmentVisitedAsync(dto.AppointmentId, doctorUserId);
-            return result.Success ? Ok(result) : BadRequest(result);
-        }
+                var result = await _appointmentRepository.UpdateAppointmentVisitedAsync(dto.AppointmentId, doctorUserId);
+                return result.Success ? Ok(result) : BadRequest(result);
+             }
 
         [HttpPut("update-status")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
