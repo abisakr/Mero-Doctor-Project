@@ -131,7 +131,7 @@ namespace Mero_Doctor_Project.Repositories
                         return new GetDoctorAvailabilityDto
                         {
                             DoctorUserId = first.Doctor.UserId,
-                            DoctorId = first.Doctor.DoctorId.ToString(),
+                            DoctorId = first.Doctor.DoctorId,
                             DoctorName = first.Doctor.User.FullName,
                             ProfilePictureUrl = first.Doctor.User.ProfilePictureUrl,
                             SpecialzationName = first.Doctor.Specialization?.Name ?? "N/A",
