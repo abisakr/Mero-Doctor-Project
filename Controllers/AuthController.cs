@@ -69,8 +69,8 @@ namespace Mero_Doctor_Project.Controllers
             var resetLink = $"merodoctor://reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
 
             // Send Email
-            string fromMail = "abiskar.a@gmail.com";
-            string fromPassword = "ejoooddorojxudoeX";
+            string fromMail = "abiskar.ag@gmail.com";
+            string fromPassword = "ejoooddorojxudoe";
 
             MailMessage message = new MailMessage();
             message.From = new MailAddress(fromMail);
