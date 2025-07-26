@@ -1,4 +1,5 @@
 ﻿using Mero_Doctor_Project.DTOs.AuthDto;
+using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Repositories;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -20,10 +21,21 @@ namespace Mero_Doctor_Project.Controllers
         [HttpPost("register-patient")]
         public async Task<IActionResult> Register([FromBody] PatientRegistrationDto dto)
         {
-            // Validate the model state
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState); // Return validation errors
+                var firstError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault();
+
+                var errorMessage = $"Invalid Credentials: {firstError}";
+
+                return BadRequest(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = errorMessage,
+                    Data = null
+                });
             }
 
             // Call the registration method
