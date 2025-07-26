@@ -19,19 +19,15 @@ namespace Mero_Doctor_Project.Repositories
             try
             {
                 var doctor = await _context.Doctors
-       .Include(d => d.User)
-       .Include(d => d.Specialization)
-       .FirstOrDefaultAsync(d => d.UserId == userId);
-
-                var today = DateOnly.FromDateTime(DateTime.Today);
-
+                    .Include(d => d.User)
+                    .Include(d => d.Specialization)
+                    .FirstOrDefaultAsync(d => d.UserId == userId);
+                var today = DateOnly.FromDateTime(DateTime.Today);  // Convert to DateOnly            
                 var todaysUnvisitedAppointmentsCount = await _context.Appointments
-                    .Where(a => a.DoctorId == doctor.DoctorId
-                                && a.AvailableDate == today
-                                && !a.Visited)  // Only unvisited appointments
-                    .CountAsync();
-
-
+                  .Where(a => a.DoctorId == doctor.DoctorId
+                              && a.AvailableDate == today
+                              && !a.Visited)  // Only unvisited appointments
+                  .CountAsync();
 
                 if (doctor == null)
                 {
@@ -57,7 +53,7 @@ namespace Mero_Doctor_Project.Repositories
                     SpecializationName = doctor.Specialization.Name,
                     Latitude = doctor.User.Latitude,
                     Longitude = doctor.User.Longitude,
-                    TodaysAppointments = todaysAppointmentsCount // <-- Assign the count here
+                    TodaysAppointments = todaysUnvisitedAppointmentsCount // <-- Assign the count here
                 };
 
 
