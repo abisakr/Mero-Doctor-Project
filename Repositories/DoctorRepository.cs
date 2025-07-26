@@ -19,13 +19,18 @@ namespace Mero_Doctor_Project.Repositories
             try
             {
                 var doctor = await _context.Doctors
-                    .Include(d => d.User)
-                    .Include(d => d.Specialization)
-                    .FirstOrDefaultAsync(d => d.UserId == userId);
-                var today = DateOnly.FromDateTime(DateTime.Today);  // Convert to DateOnly
-                var todaysAppointmentsCount = await _context.Appointments
-                    .Where(a => a.DoctorId == doctor.DoctorId && a.AvailableDate== today)
+       .Include(d => d.User)
+       .Include(d => d.Specialization)
+       .FirstOrDefaultAsync(d => d.UserId == userId);
+
+                var today = DateOnly.FromDateTime(DateTime.Today);
+
+                var todaysUnvisitedAppointmentsCount = await _context.Appointments
+                    .Where(a => a.DoctorId == doctor.DoctorId
+                                && a.AvailableDate == today
+                                && !a.Visited)  // Only unvisited appointments
                     .CountAsync();
+
 
 
                 if (doctor == null)
