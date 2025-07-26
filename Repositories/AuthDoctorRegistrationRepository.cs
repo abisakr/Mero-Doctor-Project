@@ -79,6 +79,43 @@ namespace Mero_Doctor_Project.Repositories
 
             try
             {
+                // 1. Check if Email already exists (in ApplicationUser)
+                var emailExists = await _userManager.FindByEmailAsync(dto.Email);
+                if (emailExists != null)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "Email already registered.",
+                        Data = null
+                    };
+                }
+
+                // 2. Check if PhoneNumber already exists (in ApplicationUser)
+                var phoneExists = await _context.Users.AnyAsync(u => u.PhoneNumber == dto.PhoneNumber);
+                if (phoneExists)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "Phone number already registered.",
+                        Data = null
+                    };
+                }
+
+                // 3. Check if RegistrationId already exists (in Doctor)
+                var registrationExists = await _context.Doctors.AnyAsync(d => d.RegistrationId == dto.RegistrationId);
+                if (registrationExists)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "Registration ID already registered.",
+                        Data = null
+                    };
+                }
+
+                // Proceed with creating user and doctor as before
                 var user = new ApplicationUser
                 {
                     UserName = dto.Email,
@@ -124,8 +161,8 @@ namespace Mero_Doctor_Project.Repositories
                     SpecializationId = dto.SpecializationId
                 };
 
-                await AddAsync(doctor);         // From base Repository
-                await SaveChangesAsync();       // From base Repository
+                await AddAsync(doctor);         // From base repository
+                await SaveChangesAsync();       // From base repository
                 await transaction.CommitAsync();
 
                 return new ResponseModel<Doctor>
@@ -146,5 +183,6 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
     }
 }

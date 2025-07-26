@@ -5,6 +5,7 @@ using Mero_Doctor_Project.Models;
 using Mero_Doctor_Project.Models.Common;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mero_Doctor_Project.Repositories
 {
@@ -19,13 +20,38 @@ namespace Mero_Doctor_Project.Repositories
             _userManager = userManager;
             _tokenGenerator = tokenGenerator;
         }
-      
+
         public async Task<ResponseModel<Patient>> PatientRegisterAsync(PatientRegistrationDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
+                // 1. Check if Email already exists (in ApplicationUser)
+                var emailExists = await _userManager.FindByEmailAsync(dto.Email);
+                if (emailExists != null)
+                {
+                    return new ResponseModel<Patient>
+                    {
+                        Success = false,
+                        Message = "Email is already registered.",
+                        Data = null
+                    };
+                }
+
+                // 2. Check if PhoneNumber already exists (in ApplicationUser)
+                var phoneExists = await _context.Users.AnyAsync(u => u.PhoneNumber == dto.PhoneNumber);
+                if (phoneExists)
+                {
+                    return new ResponseModel<Patient>
+                    {
+                        Success = false,
+                        Message = "Phone number is already registered.",
+                        Data = null
+                    };
+                }
+
+                // Proceed with creating user and patient as before
                 var user = new ApplicationUser
                 {
                     UserName = dto.Email,
@@ -66,11 +92,10 @@ namespace Mero_Doctor_Project.Repositories
                     DateOfBirth = dto.DateOfBirth,
                     Gender = dto.Gender,
                     Address = dto.Address,
-                  
                 };
 
-                await AddAsync(patient);       // From base Repository
-                await SaveChangesAsync();      // From base Repository
+                await AddAsync(patient);
+                await SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return new ResponseModel<Patient>
@@ -92,5 +117,6 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
     }
 }
