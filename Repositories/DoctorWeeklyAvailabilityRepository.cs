@@ -102,32 +102,72 @@ namespace Mero_Doctor_Project.Repositories
             {
                 var today = DateOnly.FromDateTime(DateTime.Today);
 
-                var allUpcomingAvailabilities = await _context.DoctorWeeklyAvailabilities
+                /* ----------------------------------------------------------
+                 *  1.  Pre‑load all appointments from today onward.
+                 *      We only need the keys that identify a slot.
+                 * ---------------------------------------------------------- */
+                var takenSlots = await _context.Appointments
+                    .Where(a => a.AvailableDate >= today)
+                    .Select(a => new { a.DoctorId, a.AvailableDate, a.AvailableTime })
+                    .ToListAsync();
+
+                /* ----------------------------------------------------------
+                 *  2.  Pull every weekly availability ≥ today
+                 *      (with doctor + user + specialization attached).
+                 *      We do NOT filter TimeRanges in SQL because filtered
+                 *      Include is only supported in EF Core ≥ 5.  
+                 * ---------------------------------------------------------- */
+                var raw = await _context.DoctorWeeklyAvailabilities
                     .Where(a => a.AvailableDate >= today)
                     .Include(a => a.Doctor)
                         .ThenInclude(d => d.User)
                     .Include(a => a.Doctor)
                         .ThenInclude(d => d.Specialization)
-                    .Include(a => a.TimeRanges)
+                    .Include(a => a.TimeRanges)       // we’ll cut this list in memory
                     .OrderBy(a => a.Doctor.UserId)
                     .ThenBy(a => a.AvailableDate)
                     .ToListAsync();
 
-                if (!allUpcomingAvailabilities.Any())
+                /* ----------------------------------------------------------
+                 *  3.  Throw away any TimeRange that…
+                 *      –  has IsAvailable == false  OR
+                 *      –  is already present in the appointments table.
+                 * ---------------------------------------------------------- */
+                var filteredAvailabilities = raw
+                    .Select(av =>
+                    {
+                        av.TimeRanges = av.TimeRanges
+                            .Where(tr => tr.IsAvailable &&
+                                         !takenSlots.Any(t =>
+                                             t.DoctorId == av.DoctorId &&
+                                             t.AvailableDate == av.AvailableDate &&
+                                             t.AvailableTime == tr.AvailableTime))
+                            .OrderBy(tr => tr.AvailableTime)
+                            .ToList();
+
+                        return av;
+                    })
+                    .Where(av => av.TimeRanges.Any())     // doctor really has free slots
+                    .ToList();
+
+                if (!filteredAvailabilities.Any())
                 {
                     return new ResponseModel<List<GetDoctorAvailabilityDto>>
                     {
                         Success = false,
-                        Message = "No upcoming or today's availability found for any doctor.",
+                        Message = "No upcoming availability found for any doctor.",
                         Data = new List<GetDoctorAvailabilityDto>()
                     };
                 }
 
-                var groupedByDoctor = allUpcomingAvailabilities
+                /* ----------------------------------------------------------
+                 *  4.  Shape the DTOs (grouped by doctor).
+                 * ---------------------------------------------------------- */
+                var grouped = filteredAvailabilities
                     .GroupBy(a => a.Doctor.UserId)
-                    .Select(group =>
+                    .Select(g =>
                     {
-                        var first = group.First();
+                        var first = g.First();
                         return new GetDoctorAvailabilityDto
                         {
                             DoctorUserId = first.Doctor.UserId,
@@ -135,16 +175,16 @@ namespace Mero_Doctor_Project.Repositories
                             DoctorName = first.Doctor.User.FullName,
                             ProfilePictureUrl = first.Doctor.User.ProfilePictureUrl,
                             SpecialzationName = first.Doctor.Specialization?.Name ?? "N/A",
-                            Availabilities = group.Select(a => new GetDayAvailabilityDto
+                            Availabilities = g.Select(av => new GetDayAvailabilityDto
                             {
-                                DoctorWeeklyAvailabilityId = a.DoctorWeeklyAvailabilityId,
-                                AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
-                                DayOfWeek = a.AvailableDate.DayOfWeek.ToString(),
-                                TimeRanges = a.TimeRanges.Select(tr => new GetTimeRangeDto
+                                DoctorWeeklyAvailabilityId = av.DoctorWeeklyAvailabilityId,
+                                AvailableDate = av.AvailableDate.ToString("yyyy-MM-dd"),
+                                DayOfWeek = av.AvailableDate.DayOfWeek.ToString(),
+                                TimeRanges = av.TimeRanges.Select(tr => new GetTimeRangeDto
                                 {
                                     TimeRangeId = tr.DoctorWeeklyTimeRangeId,
                                     AvailableTime = tr.AvailableTime.ToString("hh:mm tt"),
-                                    IsAvailable = tr.IsAvailable ? "Yes" : "No"
+                                    IsAvailable = "Yes"        // all that reach here are free
                                 }).ToList()
                             }).ToList()
                         };
@@ -154,8 +194,8 @@ namespace Mero_Doctor_Project.Repositories
                 return new ResponseModel<List<GetDoctorAvailabilityDto>>
                 {
                     Success = true,
-                    Message = "All upcoming and today's availabilities fetched successfully.",
-                    Data = groupedByDoctor
+                    Message = "Upcoming availabilities fetched successfully.",
+                    Data = grouped
                 };
             }
             catch (Exception ex)
