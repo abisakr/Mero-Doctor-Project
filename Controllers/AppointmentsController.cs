@@ -120,7 +120,26 @@ namespace Mero_Doctor_Project.Controllers
             var result = await _appointmentRepository.GetAllUpcomingAppointmentsAsync();
             return result.Success ? Ok(result) : BadRequest(result);
         }
-            [HttpPut("update-visited")]
+
+        [HttpGet("completedAppointments")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        public async Task<IActionResult> GetAllCompletedAppointmentsAsync()
+        {
+            string user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (user == null)
+                return Unauthorized(new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = "Unauthorized: User not found.",
+                    Data = null
+                });
+
+            var result = await _appointmentRepository.GetAllCompletedAppointmentsAsync();
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPut("update-visited")]
              [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
              public async Task<IActionResult> UpdateAppointmentVisited([FromBody] UpdateVisitedDto dto)
               {

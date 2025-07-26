@@ -425,6 +425,62 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
+        public async Task<ResponseModel<List<GetCompletedAppointmentDto>>> GetAllCompletedAppointmentsAsync()
+        {
+            try
+            {
+                var appointments = await _context.Appointments
+                    .Where(a => a.Visited == true)
+                    .Include(a => a.Doctor)
+                        .ThenInclude(d => d.User)
+                    .Include(a => a.Patient)
+                        .ThenInclude(p => p.User)
+                    .OrderByDescending(a => a.AvailableDate)
+                    .ThenByDescending(a => a.AvailableTime)
+                    .ToListAsync();
+
+                var dtoList = appointments.Select(a => new GetCompletedAppointmentDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId,
+                    Status = a.Status.ToString(),
+                    AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
+                    AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
+                    BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
+                    TransactionId = a.TransactionId,
+                    TransactionStatus = a.TransactionStatus,
+                    PaymentDate = a.PaymentDate?.ToString("yyyy-MM-dd hh:mm:ss tt"),
+                    Visited = a.Visited,
+                    DoctorName = a.Doctor.User.FullName,
+
+                    // Full Patient Details
+                    PatientName = a.Patient.User.FullName,
+                    PatientEmail = a.Patient.User.Email,
+                    PatientPhone = a.Patient.User.PhoneNumber,
+                    PatientLatitude = a.Patient.User.Latitude,
+                    PatientLongitude = a.Patient.User.Longitude,
+                    PatientProfilePicture = a.Patient.User.ProfilePictureUrl
+                }).ToList();
+
+                return new ResponseModel<List<GetCompletedAppointmentDto>>
+                {
+                    Success = true,
+                    Message = "Completed appointments with visited patients fetched successfully.",
+                    Data = dtoList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<List<GetCompletedAppointmentDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync()
         {
             try
