@@ -28,12 +28,12 @@ namespace Mero_Doctor_Project.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values
+                var errors = ModelState.Values
                     .SelectMany(v => v.Errors)
                     .Select(e => e.ErrorMessage)
-                    .FirstOrDefault();
+                    .ToList();
 
-                var errorMessage = $"Invalid Credentials: {firstError}";
+                var errorMessage = "Invalid Credentials: " + string.Join("; ", errors);
 
                 return BadRequest(new ResponseModel<string>
                 {

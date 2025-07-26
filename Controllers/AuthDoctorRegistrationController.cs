@@ -32,19 +32,7 @@ namespace Mero_Doctor_Project.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .FirstOrDefault();
-
-                var errorMessage = $"Invalid Credentials: {firstError}";
-
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = errorMessage,
-                    Data = null
-                });
+                return BadRequest(ModelState);
             }
 
             var result = await _authDoctorRegistrationRepository.DoctorLoginAsync(loginDto);
@@ -61,19 +49,7 @@ namespace Mero_Doctor_Project.Controllers
             // Check if the ModelState is valid
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .FirstOrDefault();
-
-                var errorMessage = $"Invalid Credentials: {firstError}";
-
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = errorMessage,
-                    Data = null
-                });
+                return BadRequest(ModelState); // Return validation errors
             }
 
             // Call the registration method

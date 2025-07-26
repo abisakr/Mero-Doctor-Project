@@ -33,19 +33,7 @@ namespace Mero_Doctor_Project.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .FirstOrDefault();
-
-                var errorMessage = $"Invalid Credentials: {firstError}";
-
-                return BadRequest(new ResponseModel<string>
-                {
-                    Success = false,
-                    Message = errorMessage,
-                    Data = null
-                });
+               return BadRequest(ModelState); 
             }
 
             var result = await _authRepository.LoginAsync(loginDto);
