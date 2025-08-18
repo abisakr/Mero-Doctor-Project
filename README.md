@@ -69,3 +69,12 @@ Run the following command to apply migrations and create the database:
 
 `dotnet build`
 `dotnet run`
+
+---
+
+## 👨‍💻 Author
+
+* Developed by **Abiskar Gyawali**
+* Contributions & suggestions are welcome!
+
+---
