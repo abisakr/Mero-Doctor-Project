@@ -16,7 +16,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 - Blog system with comments, likes, and ratings
 - Feedback and doctor review system
 - Role-based access for Admin, Doctor, and Patient
-- eSewa payment integration before confirming appointments
+- Payment verification via eSewa (handled on frontend, backend confirms/rejects payments).
 - Admin validation of doctors using NMC (NOC) number,Manage (Doctor Specialization, BlogCategory),View total users
 
 ---
@@ -28,7 +28,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 - **Design Pattern:** Repository Pattern 
 - **Image Handling:** Static file storage in `wwwroot/images`
 - **Machine Learning:** Python Flask (Pneumonia Detection via X-ray)
-- **Payment Integration:** eSewa for appointment validation
+- **Payment Flow:**  backend confirms/rejects payment
 - **Communication:** Flask API called from ASP.NET Core
 - **DTOs:** Used for data transfer between layers
 
@@ -43,7 +43,7 @@ Additionally, it integrates with a Python Flask-based machine learning model to 
 - **ML:** Python Flask + DenseNet + Grad-CAM
 - **Authentication:** ASP.NET Identity + JWT
 - **Other Tools:** LINQ, AutoMapper, SignalR
-- **Payments:** eSewa Payment Gateway
+- **Payments:** eSewa (frontend) + backend confirmation APIs
 
 ---
 
