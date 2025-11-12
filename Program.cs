@@ -94,7 +94,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins( "http://localhost:5000")
+        policy.WithOrigins("http://localhost:5000")
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
@@ -109,11 +109,11 @@ var app = builder.Build();
 
 await AppInitializer.InitializeAsync(app.Services);
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 app.UseRouting();
