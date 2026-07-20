@@ -12,10 +12,12 @@ namespace Mero_Doctor_Project.Repositories
     public class AppointmentRepository : IAppointmentRepository
     {
         private readonly ApplicationDbContext _context;
+
         public AppointmentRepository(ApplicationDbContext context)
         {
             _context = context;
         }
+
         public async Task<ResponseModel<AppointmentBookingResponseDto>> BookAppointmentAsync(BookAppointmentDto dto, string patientUserId)
         {
             try
@@ -77,7 +79,7 @@ namespace Mero_Doctor_Project.Repositories
                 {
                     Success = true,
                     Message = "Appointment created. Proceed with payment.",
-                    Data = new AppointmentBookingResponseDto { TransactionId=transactionId,DoctorUserId= availability.Doctor.UserId }
+                    Data = new AppointmentBookingResponseDto { TransactionId = transactionId, DoctorUserId = availability.Doctor.UserId }
                 };
             }
             catch (Exception ex)
@@ -90,7 +92,6 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
 
         public async Task<ResponseModel<string>> UpdateAppointmentVisitedAsync(int appointmentId, string doctorUserId)
         {
@@ -204,6 +205,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetAppointmentsByPatientAsync(string patientUserId)
         {
             try
@@ -282,13 +284,15 @@ namespace Mero_Doctor_Project.Repositories
                 {
                     AppointmentId = a.AppointmentId,
                     DoctorId = a.DoctorId,
-                    PatientId = a.DoctorId,
+                    PatientId = a.PatientId,
                     Status = a.Status.ToString(), // convert enum to string
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"), // format DateOnly as string
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),                    // format TimeOnly as string
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"), // format DateTime as string
                     PatientName = a.Patient.User.FullName,
-                    DoctorName = null // You can fill this if you include Doctor and Doctor.User as well
+                    DoctorName = null,
+                    TransactionStatus = a.TransactionStatus,
+                    Visited = a.Visited// You can fill this if you include Doctor and Doctor.User as well
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
@@ -308,6 +312,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetAppointmentDto>>> GetTodaysDoctorAppontmentsAsync(string doctorUserId)
         {
             try
@@ -347,7 +352,9 @@ namespace Mero_Doctor_Project.Repositories
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
                     PatientName = a.Patient.User.FullName,
                     ProfilePictureUrl = a.Patient.User.ProfilePictureUrl, // ✅ Added
-                    DoctorName = null
+                    DoctorName = null,
+                    TransactionStatus = a.TransactionStatus,
+                    Visited = a.Visited
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
@@ -498,7 +505,8 @@ namespace Mero_Doctor_Project.Repositories
                 var dtoList = appointments.Select(a => new GetAppointmentDto
                 {
                     AppointmentId = a.AppointmentId,
-                    DoctorId = a.DoctorId,              
+                    DoctorId = a.DoctorId,
+                    PatientId = a.PatientId,
                     Status = a.Status.ToString(),
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
@@ -523,8 +531,5 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
-
     }
-
 }

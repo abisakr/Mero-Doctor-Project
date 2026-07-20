@@ -88,13 +88,13 @@ builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>(
 builder.Services.AddScoped<IRatingReviewRepository, RatingReviewRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-
+builder.Services.AddScoped<PatientRepository>();
 // CORS setup – add both if you're unsure which one is needed
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins("http://localhost:5000")
+        policy.WithOrigins("http://localhost:5000", "http://localhost:5173")
                .AllowAnyMethod()
                .AllowAnyHeader();
     });

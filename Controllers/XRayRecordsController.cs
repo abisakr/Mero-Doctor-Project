@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using static System.Net.WebRequestMethods;
+using Mero_Doctor_Project.Repositories;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -13,11 +14,14 @@ namespace Mero_Doctor_Project.Controllers
     public class XRayRecordsController : ControllerBase
     {
         private readonly IXRayRecordRepository _xRayRecordRepository;
+        private readonly PatientRepository _patientRepository;
 
-        public XRayRecordsController(IXRayRecordRepository xRayRecordRepository)
+        public XRayRecordsController(IXRayRecordRepository xRayRecordRepository, PatientRepository patientRepository)
         {
             _xRayRecordRepository = xRayRecordRepository;
+            _patientRepository = patientRepository;
         }
+
         [Authorize]
         [HttpPost("detect-pneumonia")]
         public async Task<IActionResult> DetectPneumonia([FromForm] DetectPneumoniaDto dto)
@@ -31,33 +35,15 @@ namespace Mero_Doctor_Project.Controllers
 
         [Authorize]
         [HttpGet("xray-history")]
-        public async Task<IActionResult> GetXRayHistory()
+        public async Task<IActionResult> GetXRayHistory([FromQuery] int? patientId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _xRayRecordRepository.GetUserXRayHistory(userId);
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized("User session invalid.");
+
+            var result = await _xRayRecordRepository.GetUserXRayHistory(patientId, currentUserId);
             return Ok(result);
         }
-
-        //       flutter code for that
-        //        Future<void> uploadXRay(File file) async {
-        //  var request = http.MultipartRequest(
-        //    'POST',
-        //    Uri.parse("http://localhost:5082/api/XRay/detect-pneumonia"),
-        //  );
-
-        //        request.headers['Authorization'] = 'Bearer your_jwt_token';
-        //  request.files.add(await http.MultipartFile.fromPath('XRayImage', file.path));
-
-        //  var res = await request.send();
-
-        //  if (res.statusCode == 200) {
-        //    final body = await res.stream.bytesToString();
-        //        final json = jsonDecode(body);
-        //        print("Result: ${json['data']}");
-        //    } else {
-        //    print("Failed: ${res.statusCode}");
-        //}
-        //}
-
     }
 }

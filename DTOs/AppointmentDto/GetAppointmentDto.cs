@@ -9,6 +9,9 @@ namespace Mero_Doctor_Project.DTOs.AppointmentDto
             public int DoctorId { get; set; }
             public int PatientId { get; set; }
             public string Status { get; set; }
+            public string TransactionStatus { get; set; }
+            public bool Visited { get; set; }
+
             public string AvailableDate { get; set; }
             public string AvailableTime { get; set; }
             public string BookingDateTime { get; set; }

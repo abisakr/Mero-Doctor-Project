@@ -112,22 +112,32 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(string userId)
+        public async Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(int? patientId, string currentUserId)
         {
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(p => p.Id == userId);
-                if (user == null)
+                string targetUserId = currentUserId;
+
+                if (patientId.HasValue && patientId.Value > 0)
                 {
-                    return new ResponseModel<List<GetXRayHistoryDto>>
+                    var patientRecord = await _context.Patients
+                        .FirstOrDefaultAsync(p => p.PatientId == patientId.Value);
+
+                    if (patientRecord == null)
                     {
-                        Success = false,
-                        Message = "Patient not found"
-                    };
+                        return new ResponseModel<List<GetXRayHistoryDto>>
+                        {
+                            Success = false,
+                            Message = "Specified patient record not found."
+                        };
+                    }
+
+                    targetUserId = patientRecord.UserId;
                 }
 
+                // 2. Fetch records using the determined targetUserId
                 var records = await _context.XRayRecords
-                    .Where(r => r.PatientId == user.Id)
+                    .Where(r => r.PatientId == targetUserId) // Assuming PatientId in XRayRecords stores the string GUID
                     .OrderByDescending(r => r.DateTime)
                     .Select(r => new GetXRayHistoryDto
                     {
@@ -137,22 +147,24 @@ namespace Mero_Doctor_Project.Repositories
                         Confidence = (float)r.Confidence,
                         RecommendedHospital = r.RecommendedHospital,
                         DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
-
                     })
                     .ToListAsync();
 
                 return new ResponseModel<List<GetXRayHistoryDto>>
                 {
                     Success = true,
-                    Message = "Data fetched successfully.",
+                    Message = records.Any() ? "Data fetched successfully." : "No records found.",
                     Data = records
                 };
             }
             catch (Exception ex)
             {
-                return new ResponseModel<List<GetXRayHistoryDto>> { Success = false, Message = $"Error: {ex.Message}" };
+                return new ResponseModel<List<GetXRayHistoryDto>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}"
+                };
             }
-        
         }
 
     }

@@ -6,7 +6,8 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
 {
     public interface IPatientRepository
     {
-        Task<ResponseModel<GetPatientDto>> GetPatientByIdAsync(string userId);
+        Task<ResponseModel<GetPatientDto>> GetPatientDetailsAsync(int? patientId, string userId);
+
         Task<ResponseModel<List<GetPatientDto>>> GetAllPatientsAsync();
     }
 }

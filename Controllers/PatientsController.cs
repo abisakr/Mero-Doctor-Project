@@ -11,7 +11,6 @@ namespace Mero_Doctor_Project.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
-       
         private readonly IPatientRepository _patientRepository;
 
         public PatientsController(IPatientRepository patientRepository)
@@ -19,21 +18,24 @@ namespace Mero_Doctor_Project.Controllers
             _patientRepository = patientRepository;
         }
 
-        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient,Doctor")]
         [HttpGet("getPatientById")]
-        public async Task<IActionResult> GetPatientById()
+        public async Task<IActionResult> GetPatientById([FromQuery] int? patientId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized("Please Login as Patient.");
-            var response = await _patientRepository.GetPatientByIdAsync(userId);
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(currentUserId))
+                return Unauthorized("User session invalid.");
+
+            var response = await _patientRepository.GetPatientDetailsAsync(patientId, currentUserId);
+
             if (!response.Success)
                 return NotFound(response);
+
             return Ok(response);
         }
 
         [HttpGet("getAllPatients")]
-
         public async Task<IActionResult> GetAllPatients()
         {
             var patients = await _patientRepository.GetAllPatientsAsync();
