@@ -66,7 +66,9 @@ namespace Mero_Doctor_Project.Controllers
                 });
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var resetLink = $"merodoctor://reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+            var newPassword = $"@#{user.Email}";
+            var password = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            //var resetLink = $"merodoctor://reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
 
             // Send Email
             string fromMail = "akash.ag@gmail.com";
@@ -76,7 +78,7 @@ namespace Mero_Doctor_Project.Controllers
             message.From = new MailAddress(fromMail);
             message.Subject = "Reset Your Password";
             message.To.Add(new MailAddress(user.Email));
-            message.Body = $"<html><body>Click <a href='{resetLink}'>here</a> to reset your password.</body></html>";
+            message.Body = $"<html><body>Your new password for email : {user.Email} is @#{user.Email}<body></html>";
             message.IsBodyHtml = true;
 
             var smtpClient = new SmtpClient("smtp.gmail.com")
@@ -90,7 +92,7 @@ namespace Mero_Doctor_Project.Controllers
             return  Ok(new ResponseModel<string>
                 {
                     Success = true,
-                    Message = "Reset link is sent if Email is correct.",
+                    Message = "Password is sent in your mail if Email is correct.",
                     Data = null
             });  
         }

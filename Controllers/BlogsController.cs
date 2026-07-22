@@ -20,7 +20,7 @@ namespace Mero_Doctor_Project.Controllers
 
         [HttpPost("Add")]
         [Authorize(Roles = "Doctor")]
-        public async Task<IActionResult> AddBlog( [FromForm] BlogAddDto dto)
+        public async Task<IActionResult> AddBlog([FromForm] BlogAddDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _blogRepository.AddAsync(dto, userId);
@@ -57,10 +57,13 @@ namespace Mero_Doctor_Project.Controllers
             return NotFound(result);
         }
 
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor,Patient,Admin")]
         [HttpGet("Get/{id}")]
         public async Task<IActionResult> GetBlog(int id)
         {
-            var result = await _blogRepository.GetAsync(id);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _blogRepository.GetAsync(id, userId);
 
             if (result.Success)
                 return Ok(result);
@@ -83,7 +86,6 @@ namespace Mero_Doctor_Project.Controllers
 
             return NotFound(result);
         }
-
 
         [HttpGet("GetByDoctor")]
         [Authorize(Roles = "Doctor")]

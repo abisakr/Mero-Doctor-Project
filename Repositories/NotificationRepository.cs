@@ -57,6 +57,46 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
+        public async Task<ResponseModel<string>> IsRead(int notificationId)
+        {
+            try
+            {
+
+                var notification =await _context.Notifications.FirstOrDefaultAsync(a=>a.NotificationId==notificationId);
+
+                notification.IsRead = true;
+                
+                 _context.Notifications.Update(notification);
+                var result = await _context.SaveChangesAsync();
+
+                if (result <= 0)
+                {
+                    return new ResponseModel<string>
+                    {
+                        Success = false,
+                        Message = "Failed to update notification.",
+                        Data = null
+                    };
+                }
+
+                return new ResponseModel<string>
+                {
+                    Success = true,
+                    Message = "Notification Updated.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel<string>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
         public async Task<ResponseModel<List<NotificationViewDto>>> GeAllNotificationsByIdAsync(string userId)
         {
             try

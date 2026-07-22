@@ -32,10 +32,11 @@ namespace Mero_Doctor_Project.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFeedbackRepository _feedbackRepository;
         private readonly NotificationHelper _notificationHelper;
-        public AppointmentsController(UserManager<ApplicationUser> userManager, IAppointmentRepository appointmentRepository,ApplicationDbContext context, NotificationHelper notificationHelper)
+
+        public AppointmentsController(UserManager<ApplicationUser> userManager, IAppointmentRepository appointmentRepository, ApplicationDbContext context, NotificationHelper notificationHelper)
         {
             _appointmentRepository = appointmentRepository;
-            _context =context;
+            _context = context;
             _userManager = userManager;
             _notificationHelper = notificationHelper;
         }
@@ -44,7 +45,6 @@ namespace Mero_Doctor_Project.Controllers
         [Authorize]
         public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentDto dto)
         {
-            
             string patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             string patientUserName = User.FindFirst(ClaimTypes.Name)?.Value;
             if (patientUserId == null)
@@ -62,7 +62,7 @@ namespace Mero_Doctor_Project.Controllers
                 string doctorMessage = $"New Appointment Alert from: {patientUserName}";
                 await _notificationHelper.SendAndStoreNotificationAsync(patientUserId, patienetMessage);
                 await _notificationHelper.SendAndStoreNotificationAsync(result.Data.DoctorUserId, doctorMessage);//put doctor userId
-               return Ok(new ResponseModel<string> { Success = true, Message = "Appointment created. Proceed with payment.", Data = result.Data.TransactionId });
+                return Ok(new ResponseModel<string> { Success = true, Message = "Appointment created. Proceed with payment.", Data = result.Data.TransactionId });
             }
             return BadRequest(result);
         }
@@ -107,9 +107,10 @@ namespace Mero_Doctor_Project.Controllers
         [Authorize]
         public async Task<IActionResult> GetUpcommingAppointmentsAsync()
         {
-            string user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (user == null)
+            if (userId == null)
                 return Unauthorized(new ResponseModel<string>
                 {
                     Success = false,
@@ -117,7 +118,7 @@ namespace Mero_Doctor_Project.Controllers
                     Data = null
                 });
 
-            var result = await _appointmentRepository.GetAllUpcomingAppointmentsAsync();
+            var result = await _appointmentRepository.GetAllUpcomingAppointmentsAsync(userId, role);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -140,9 +141,9 @@ namespace Mero_Doctor_Project.Controllers
         }
 
         [HttpPut("update-visited")]
-             [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
-             public async Task<IActionResult> UpdateAppointmentVisited([FromBody] UpdateVisitedDto dto)
-              {
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
+        public async Task<IActionResult> UpdateAppointmentVisited([FromBody] UpdateVisitedDto dto)
+        {
             string doctorUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (doctorUserId == null)
@@ -153,9 +154,9 @@ namespace Mero_Doctor_Project.Controllers
                     Data = null
                 });
 
-                var result = await _appointmentRepository.UpdateAppointmentVisitedAsync(dto.AppointmentId, doctorUserId);
-                return result.Success ? Ok(result) : BadRequest(result);
-             }
+            var result = await _appointmentRepository.UpdateAppointmentVisitedAsync(dto.AppointmentId, doctorUserId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
 
         [HttpPut("update-status")]
         [Authorize(AuthenticationSchemes = "Bearer", Roles = "Doctor")]
@@ -198,7 +199,7 @@ namespace Mero_Doctor_Project.Controllers
 
         // Patient: Get all appointments
         [HttpGet("patient")]
-      [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = "Patient")]
         public async Task<IActionResult> GetAppointmentsByPatient()
         {
             var patientUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -220,13 +221,12 @@ namespace Mero_Doctor_Project.Controllers
             return Ok(result);
         }
 
-
         [HttpPost("confirm-payment")]
         [Authorize]
         public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationDto dto)
         {
             var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.TransactionId == dto.TransactionId);
-            if (appointment == null) return 
+            if (appointment == null) return
             NotFound(new ResponseModel<string>
             {
                 Success = false,
@@ -245,9 +245,7 @@ namespace Mero_Doctor_Project.Controllers
                 Message = "Payment confirmed",
                 Data = null
             });
-          
         }
-
 
         [HttpPost("fail-payment")]
         [Authorize]
@@ -276,7 +274,5 @@ namespace Mero_Doctor_Project.Controllers
                 Data = null
             });
         }
-
-
     }
 }

@@ -7,5 +7,6 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
     public interface IAuthPatientRegistrationRepository
     {
         public Task<ResponseModel<Patient>> PatientRegisterAsync(PatientRegistrationDto model);
+        Task<ResponseModel<Patient>> EditPatientProfile(PatientRegistrationEditDto dto, string userId);
     }
 }

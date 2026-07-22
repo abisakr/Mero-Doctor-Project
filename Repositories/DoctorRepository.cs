@@ -1,6 +1,7 @@
 ﻿using Mero_Doctor_Project.Data;
 using Mero_Doctor_Project.DTOs.DoctorDto;
 using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Models.Enums;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Mero_Doctor_Project.Repositories
     public class DoctorRepository : IDoctorRepository
     {
         private readonly ApplicationDbContext _context;
+
         public DoctorRepository(ApplicationDbContext context)
         {
             _context = context;
@@ -22,7 +24,7 @@ namespace Mero_Doctor_Project.Repositories
                     .Include(d => d.User)
                     .Include(d => d.Specialization)
                     .FirstOrDefaultAsync(d => d.UserId == userId);
-                var today = DateOnly.FromDateTime(DateTime.Today);  // Convert to DateOnly            
+                var today = DateOnly.FromDateTime(DateTime.Today);  // Convert to DateOnly
                 var todaysUnvisitedAppointmentsCount = await _context.Appointments
                   .Where(a => a.DoctorId == doctor.DoctorId
                               && a.AvailableDate == today
@@ -56,7 +58,6 @@ namespace Mero_Doctor_Project.Repositories
                     TodaysAppointments = todaysUnvisitedAppointmentsCount // <-- Assign the count here
                 };
 
-
                 return new ResponseModel<GetDoctorDto>
                 {
                     Success = true,
@@ -74,14 +75,14 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-      
+
         public async Task<ResponseModel<List<GetDoctorDto>>> GetDoctorsByFilterAsync(int? specializationId, string? doctorName)
         {
             try
             {
                 var query = _context.Doctors
                     .Include(d => d.User)
-                    .Include(d => d.Specialization)
+                    .Include(d => d.Specialization).Where(d => d.Status == DoctorStatus.Verified)
                     .AsQueryable();
 
                 if (specializationId.HasValue)
@@ -91,7 +92,6 @@ namespace Mero_Doctor_Project.Repositories
 
                 if (!string.IsNullOrEmpty(doctorName))
                 {
-                    // Assuming FullName is in User entity
                     query = query.Where(d => d.User.FullName.Contains(doctorName));
                 }
 
@@ -99,8 +99,8 @@ namespace Mero_Doctor_Project.Repositories
 
                 var dtoList = doctors.Select(doctor => new GetDoctorDto
                 {
-                    UserId=doctor.UserId,
-                    DoctorId=doctor.DoctorId,
+                    UserId = doctor.UserId,
+                    DoctorId = doctor.DoctorId,
                     FullName = doctor.User.FullName,
                     Email = doctor.User.Email,
                     PhoneNumber = doctor.User.PhoneNumber,
@@ -132,19 +132,20 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetDoctorDto>>> GetAllDoctorsAsync()
         {
             try
             {
                 var doctors = await _context.Doctors
                     .Include(d => d.User)
-                    .Include(d => d.Specialization)
+                    .Include(d => d.Specialization).Where(d => d.Status == DoctorStatus.Verified)
                     .ToListAsync();
 
                 var dtoList = doctors.Select(doctor => new GetDoctorDto
                 {
-                    UserId=doctor.UserId,
-                    DoctorId=doctor.DoctorId,
+                    UserId = doctor.UserId,
+                    DoctorId = doctor.DoctorId,
                     FullName = doctor.User.FullName,
                     Email = doctor.User.Email,
                     PhoneNumber = doctor.User.PhoneNumber,
@@ -176,6 +177,7 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
+
         public async Task<ResponseModel<List<GetDoctorDto>>> GetAllTopDoctorsAsync()
         {
             try
@@ -183,11 +185,11 @@ namespace Mero_Doctor_Project.Repositories
                 var topDoctors = await _context.Doctors
                     .Include(d => d.User)
                     .Include(d => d.Specialization)
-                    .Include(d => d.Ratings)
+                    .Include(d => d.Ratings).Where(d => d.Status == DoctorStatus.Verified)
                     .Select(d => new
                     {
                         Doctor = d,
-                        AverageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.Rating) : 0
+                        AverageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.Rating) : 0,
                     })
                     .OrderByDescending(x => x.AverageRating)
                     .ThenBy(x => x.Doctor.User.FullName)
@@ -230,8 +232,5 @@ namespace Mero_Doctor_Project.Repositories
                 };
             }
         }
-
-
-
     }
 }

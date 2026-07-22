@@ -14,5 +14,6 @@ namespace Mero_Doctor_Project.DTOs.Admin
         public string ClinicAddress { get; set; }
         public string Specialization { get; set; }
         public string Status { get; set; }
+        public string ProfilePictureUrl { get; set; }
     }
 }

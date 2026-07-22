@@ -1,14 +1,15 @@
 ﻿using Mero_Doctor_Project.DTOs.AuthDto;
-using Mero_Doctor_Project.Models.Enums;
+using Mero_Doctor_Project.Helper;
 using Mero_Doctor_Project.Models;
+using Mero_Doctor_Project.Models.Common;
+using Mero_Doctor_Project.Models.Enums;
+using Mero_Doctor_Project.Repositories;
+using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mero_Doctor_Project.Repositories.Interfaces;
-using Mero_Doctor_Project.Models.Common;
-using Mero_Doctor_Project.Repositories;
-using Mero_Doctor_Project.Helper;
+using System.Security.Claims;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -71,6 +72,26 @@ namespace Mero_Doctor_Project.Controllers
             }
         }
 
+        [HttpPost("editDoctorProfile")]
+        public async Task<IActionResult> EditDoctorProfile([FromBody] DoctorRegistrationEditDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var response = await _authDoctorRegistrationRepository.EditDoctorProfile(dto, userId);
+
+            // Check the result from the service
+            if (response.Success)
+            {
+                return Ok(response); 
+            }
+            else
+            {
+                return BadRequest(response);
+            }
+        }
 
 
     }

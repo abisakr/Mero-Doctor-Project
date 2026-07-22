@@ -3,38 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Mero_Doctor_Project.DTOs.AuthDto
 {
-    public class PatientRegistrationDto
+    public class PatientRegistrationEditDto
     {
-        [Required]
         [StringLength(25)]
         public string FullName { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
         [Phone]
         public string PhoneNumber { get; set; }
 
-        [Required]
         public DateTime DateOfBirth { get; set; }
 
-        [Required]
         public Gender Gender { get; set; }
 
         [StringLength(100)]
         public string Address { get; set; }
 
-        [Required]
         public double Latitude { get; set; }
 
-        [Required]
         public double Longitude { get; set; }
-
-        [Required]
-        [MinLength(6)]
-        public string Password { get; set; }
-
     }
 }

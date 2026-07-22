@@ -3,6 +3,7 @@ using Mero_Doctor_Project.Repositories;
 using Mero_Doctor_Project.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Mero_Doctor_Project.Controllers
 {
@@ -39,5 +40,28 @@ namespace Mero_Doctor_Project.Controllers
                 return BadRequest(response); // Return failure with message
             }
         }
+
+
+        [HttpPost("editPatientProfile")]
+        public async Task<IActionResult> EditPatientProfile([FromBody] PatientRegistrationEditDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var response = await _authPatientRegistrationRepository.EditPatientProfile(dto, userId);
+
+            // Check the result from the service
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(response);
+            }
+        }
+
     }
 }

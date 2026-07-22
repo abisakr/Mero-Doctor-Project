@@ -101,7 +101,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<BlogGetDto>> GetAsync(int blogId)
+        public async Task<ResponseModel<BlogGetDto>> GetAsync(int blogId,string currentUserId)
         {
             try
             {
@@ -124,7 +124,8 @@ namespace Mero_Doctor_Project.Repositories
                     DoctorName = blog.Doctor?.User?.FullName,
                     ProfilePicture=blog.Doctor.User.ProfilePictureUrl,
                     BlogPictureUrl=blog.BlogPictureUrl,
-                    TotalLikes = blog.Likes?.Count ?? 0
+                    TotalLikes = blog.Likes?.Count ?? 0,
+                    IsLikedByUser= blog.Likes.Any(like => like.UserId == currentUserId)
                 };
 
                 return new ResponseModel<BlogGetDto> { Success = true, Message = "Blog fetched", Data = dto };

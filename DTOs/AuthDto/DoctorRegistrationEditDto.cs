@@ -2,49 +2,29 @@
 
 namespace Mero_Doctor_Project.DTOs.AuthDto
 {
-    public class DoctorRegistrationDto
+    public class DoctorRegistrationEditDto
     {
-        [Required]
         [StringLength(25)]
         public string FullName { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
         [Phone]
         public string PhoneNumber { get; set; }
 
-        [Required]
         [StringLength(400)]
         public string Degree { get; set; }
 
-        [Required]
         [Range(0, 70)]
         public double Experience { get; set; }
 
-        [Required]
         [StringLength(50)]
         public string RegistrationId { get; set; }
 
-        [Required]
         [StringLength(400)]
         public string ClinicAddress { get; set; }
 
-        [Required]
-        public int SpecializationId { get; set; } 
-        [Required]
+        public int SpecializationId { get; set; }
         public double Latitude { get; set; }
 
-        [Required]
         public double Longitude { get; set; }
-        [Required]
-        [MinLength(6)]
-        public string Password { get; set; }
-
     }
-
-   
 }
-

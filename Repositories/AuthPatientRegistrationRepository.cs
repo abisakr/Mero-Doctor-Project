@@ -118,5 +118,84 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
+
+        public async Task<ResponseModel<Patient>> EditPatientProfile(PatientRegistrationEditDto dto,string userId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return new ResponseModel<Patient>
+                    {
+                        Success = false,
+                        Message = "User Not found",
+                        Data = null
+                    };
+                }
+
+                var phoneExists = await _context.Users.AnyAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
+                if (phoneExists)
+                {
+                    return new ResponseModel<Patient>
+                    {
+                        Success = false,
+                        Message = "Phone number is already registered.",
+                        Data = null
+                    };
+                }
+
+
+                user.FullName = dto.FullName;
+                user.PhoneNumber = dto.PhoneNumber;
+                user.Latitude = dto.Latitude;
+                user.Longitude = dto.Longitude;
+                
+
+                var userResult = await _userManager.UpdateAsync(user);
+
+                if (!userResult.Succeeded)
+                {
+                    var errors = string.Join("; ", userResult.Errors.Select(e => e.Description));
+                    return new ResponseModel<Patient>
+                    {
+                        Success = false,
+                        Message = $"User profile update failed: {errors}",
+                        Data = null
+                    };
+                }
+
+                var patient = await _dbSet.FirstOrDefaultAsync(x => x.UserId == userId);
+
+                patient.DateOfBirth = dto.DateOfBirth;
+                patient.Gender = dto.Gender;
+                patient. Address = dto.Address;
+
+                 Update(patient);
+                await SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new ResponseModel<Patient>
+                {
+                    Success = true,
+                    Message = "Profile update successful.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                return new ResponseModel<Patient>
+                {
+                    Success = false,
+                    Message = $"Patient profile update failed: {ex.Message}",
+                    Data = null
+                };
+            }
+        }
+
     }
 }

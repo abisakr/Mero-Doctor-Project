@@ -74,7 +74,9 @@ namespace Mero_Doctor_Project.Repositories
                 };
 
                 _context.Appointments.Add(appointment);
+                matchingTimeRange.IsAvailable = false;
                 await _context.SaveChangesAsync();
+
                 return new ResponseModel<AppointmentBookingResponseDto>
                 {
                     Success = true,
@@ -225,7 +227,7 @@ namespace Mero_Doctor_Project.Repositories
                     .Where(a => a.PatientId == patient.PatientId)
                     .Include(a => a.Doctor)
                     .ThenInclude(d => d.User)
-                    .OrderByDescending(a => a.BookingDateTime)
+                    .OrderByDescending(a => a.AvailableDate)
                     .ToListAsync();
 
                 var dtoList = appointments.Select(a => new GetAppointmentDto
@@ -234,11 +236,18 @@ namespace Mero_Doctor_Project.Repositories
                     DoctorId = a.DoctorId,
                     PatientId = a.PatientId,
                     Status = a.Status.ToString(),
+                    TransactionStatus=a.TransactionStatus,
+                    ProfilePictureUrl=a.Doctor.User.ProfilePictureUrl,
+                    Visited=a.Visited,
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),  // e.g. 2025-06-18
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),     // e.g. 02:45 PM
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"), // e.g. 2025-06-18 02:45:30 PM
                     DoctorName = a.Doctor.User.FullName,
-                    PatientName = null // You can add patient name if needed here
+                    PatientName = null ,// You can add patient name if needed here,
+                    PhoneNumber=a.Doctor.User.PhoneNumber,
+                    ClinicAddress = a.Doctor.ClinicAddress,
+                    Latitude=a.Doctor.User.Latitude,
+                    Longitude=a.Doctor.User.Longitude
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
@@ -292,7 +301,8 @@ namespace Mero_Doctor_Project.Repositories
                     PatientName = a.Patient.User.FullName,
                     DoctorName = null,
                     TransactionStatus = a.TransactionStatus,
-                    Visited = a.Visited// You can fill this if you include Doctor and Doctor.User as well
+                    Visited = a.Visited,// You can fill this if you include Doctor and Doctor.User as well
+                    ClinicAddress=a.Patient.Address
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
@@ -333,7 +343,7 @@ namespace Mero_Doctor_Project.Repositories
                 var appointments = await _context.Appointments
                     .Where(a =>
                         a.DoctorId == doctor.DoctorId &&
-                        a.AvailableDate >= today &&
+                        a.AvailableDate == today &&
                         !a.Visited)
                     .Include(a => a.Patient)
                         .ThenInclude(p => p.User)
@@ -393,7 +403,7 @@ namespace Mero_Doctor_Project.Repositories
                 var today = DateOnly.FromDateTime(DateTime.Today);
 
                 var appointments = await _context.Appointments
-                    .Where(a => a.PatientId == patient.PatientId && a.AvailableDate >= today)
+                    .Where(a => a.PatientId == patient.PatientId && a.AvailableDate == today)
                     .Include(a => a.Doctor)
                         .ThenInclude(d => d.User)
                     .OrderBy(a => a.AvailableDate)
@@ -406,12 +416,18 @@ namespace Mero_Doctor_Project.Repositories
                     DoctorId = a.DoctorId,
                     PatientId = a.PatientId,
                     Status = a.Status.ToString(),
+                    TransactionStatus = a.TransactionStatus,
+                    Visited = a.Visited,
+                    ProfilePictureUrl = a.Doctor.User.ProfilePictureUrl,
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
                     DoctorName = a.Doctor.User.FullName,
-                    ProfilePictureUrl = a.Doctor.User.ProfilePictureUrl, // ✅ Added
-                    PatientName = null
+                    PatientName = null,
+                    PhoneNumber = a.Doctor.User.PhoneNumber,
+                    ClinicAddress = a.Doctor.ClinicAddress,
+                    Latitude = a.Doctor.User.Latitude,
+                    Longitude = a.Doctor.User.Longitude
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>
@@ -488,30 +504,44 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync()
+        public async Task<ResponseModel<List<GetAppointmentDto>>> GetAllUpcomingAppointmentsAsync(string userId, string role)
         {
             try
             {
                 var today = DateOnly.FromDateTime(DateTime.Today);
 
                 var appointments = await _context.Appointments
-                    .Where(a => a.AvailableDate >= today)
-                    .Include(a => a.Doctor)
-                        .ThenInclude(d => d.User)
-                    .OrderBy(a => a.AvailableDate)
-                    .ThenBy(a => a.AvailableTime)
-                    .ToListAsync();
+    .Include(a => a.Doctor)
+        .ThenInclude(d => d.User)
+    .Include(a => a.Patient)
+        .ThenInclude(p => p.User)
+    .Where(a =>
+        a.AvailableDate >= today &&
+        (role == "Doctor"
+            ? userId == a.Doctor.UserId
+            : userId == a.Patient.UserId))
+    .OrderBy(a => a.AvailableDate)
+    .ThenBy(a => a.AvailableTime)
+    .ToListAsync();
 
                 var dtoList = appointments.Select(a => new GetAppointmentDto
                 {
                     AppointmentId = a.AppointmentId,
                     DoctorId = a.DoctorId,
                     PatientId = a.PatientId,
+                    TransactionStatus = a.TransactionStatus,
+                    Visited = a.Visited,
+                    ProfilePictureUrl = role == "Doctor" ? a.Patient.User.ProfilePictureUrl: a.Doctor.User.ProfilePictureUrl,
                     Status = a.Status.ToString(),
                     AvailableDate = a.AvailableDate.ToString("yyyy-MM-dd"),
                     AvailableTime = a.AvailableTime.ToString("hh:mm tt"),
                     BookingDateTime = a.BookingDateTime.ToString("yyyy-MM-dd hh:mm:ss tt"),
-                    DoctorName = a.Doctor.User.FullName,
+                    DoctorName = role == "Doctor" ? a.Patient.User.FullName: a.Doctor.User.FullName,
+                    PatientName=a.Patient.User.FullName,
+                    PhoneNumber = role == "Doctor" ? a.Patient.User.PhoneNumber : a.Doctor.User.PhoneNumber,
+                    ClinicAddress = role == "Doctor" ? a.Patient.Address:a.Doctor.ClinicAddress,
+                    Latitude = role == "Doctor" ? a.Patient.User.Latitude : a.Doctor.User.Latitude,
+                    Longitude = role == "Doctor" ? a.Patient.User.Longitude : a.Doctor.User.Longitude
                 }).ToList();
 
                 return new ResponseModel<List<GetAppointmentDto>>

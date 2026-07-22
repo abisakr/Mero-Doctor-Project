@@ -94,7 +94,9 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        Status=d.Status.ToString()
+                        Status=d.Status.ToString(),
+                        ProfilePictureUrl = d.User.ProfilePictureUrl
+
                     })
                     .ToListAsync();
 
@@ -145,7 +147,8 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        Status = d.Status.ToString()
+                        Status = d.Status.ToString(),
+                        ProfilePictureUrl=d.User.ProfilePictureUrl
                     })
                     .ToListAsync();
 
@@ -153,7 +156,7 @@ namespace Mero_Doctor_Project.Repositories
                 {
                     return new ResponseModel<List<GetDoctorInfoDto>>
                     {
-                        Success = false,
+                        Success = true,
                         Message = "No pending doctors found",
                         Data = null
                     };
@@ -197,7 +200,9 @@ namespace Mero_Doctor_Project.Repositories
                         RegistrationId = d.RegistrationId,
                         ClinicAddress = d.ClinicAddress,
                         Specialization = d.Specialization.Name,
-                        Status = d.Status.ToString()
+                        Status = d.Status.ToString(),
+                        ProfilePictureUrl = d.User.ProfilePictureUrl
+
                     })
                     .ToListAsync();
 

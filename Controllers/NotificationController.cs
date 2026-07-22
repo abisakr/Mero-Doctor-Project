@@ -29,6 +29,14 @@ namespace Mero_Doctor_Project.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        [HttpPost("isRead")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<IActionResult> IsRead([FromQuery] int notificationId)
+        {
+            var result = await _notificationRepository.IsRead(notificationId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         [HttpGet("notifications")]
         [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> GeAllNotificationsByUserId()

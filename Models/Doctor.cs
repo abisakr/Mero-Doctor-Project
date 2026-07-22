@@ -17,13 +17,13 @@ namespace Mero_Doctor_Project.Models
 
         public DoctorStatus Status { get; set; }
 
-        [StringLength(40)]
+        [StringLength(400)]
         public string Degree { get; set; }
 
         [Range(0, 70)]
         public double Experience { get; set; }
 
-        [StringLength(100)]
+        [StringLength(400)]
         public string ClinicAddress { get; set; }
 
         public int SpecializationId { get; set; }

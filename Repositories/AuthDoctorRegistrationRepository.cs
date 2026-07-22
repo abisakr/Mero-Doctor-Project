@@ -72,6 +72,7 @@ namespace Mero_Doctor_Project.Repositories
                 return response;
             }
         }
+        
 
         public async Task<ResponseModel<Doctor>> DoctorRegisterAsync(DoctorRegistrationDto dto)
         {
@@ -178,11 +179,105 @@ namespace Mero_Doctor_Project.Repositories
                 return new ResponseModel<Doctor>
                 {
                     Success = false,
-                    Message = $"Doctor registration failed: {ex.Message}",
+                    Message = ex.InnerException?.Message ?? ex.Message,
                     Data = null
                 };
             }
         }
+
+
+
+        public async Task<ResponseModel<Doctor>> EditDoctorProfile(DoctorRegistrationEditDto dto, string userId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Check if Email already exists (in ApplicationUser)
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "User Not Found",
+                        Data = null
+                    };
+                }
+
+                // 2. Check if PhoneNumber already exists (in ApplicationUser)
+                var phoneExists = await _context.Users.AnyAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
+                if (phoneExists)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "Phone number already registered.",
+                        Data = null
+                    };
+                }
+
+                // 3. Check if RegistrationId already exists (in other Doctor)
+                var registrationExists = await _context.Doctors.AnyAsync(d => d.RegistrationId == dto.RegistrationId && d.UserId!=userId);
+                if (registrationExists)
+                {
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = "Registration ID already registered.",
+                        Data = null
+                    };
+                }
+                 user.FullName = dto.FullName;
+               
+                user.PhoneNumber = dto.PhoneNumber;
+                user.Latitude = dto.Latitude;
+                user.Longitude = dto.Longitude;
+             
+                var userResult = await _userManager.UpdateAsync(user);
+                if (!userResult.Succeeded)
+                {
+                    var errors = string.Join("; ", userResult.Errors.Select(e => e.Description));
+                    return new ResponseModel<Doctor>
+                    {
+                        Success = false,
+                        Message = $"User update failed: {errors}",
+                        Data = null
+                    };
+                }
+
+
+                var doctor =await _dbSet.FirstOrDefaultAsync(a => a.UserId == userId);
+                doctor.Degree = dto.Degree;
+                doctor.Experience = dto.Experience;
+                doctor.RegistrationId = dto.RegistrationId;
+                doctor.ClinicAddress = dto.ClinicAddress;
+                doctor.SpecializationId = dto.SpecializationId;
+
+                 Update(doctor);         // From base repository
+                await SaveChangesAsync();       // From base repository
+                await transaction.CommitAsync();
+
+                return new ResponseModel<Doctor>
+                {
+                    Success = true,
+                    Message = "Doctor Update successful.",
+                    Data = null
+                };
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return new ResponseModel<Doctor>
+                {
+                    Success = false,
+                    Message = ex.InnerException?.Message ?? ex.Message,
+                    Data = null
+                };
+            }
+        }
+
+
 
     }
 }
