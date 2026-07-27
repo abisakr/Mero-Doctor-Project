@@ -38,11 +38,12 @@ namespace Mero_Doctor_Project.Controllers
         public async Task<IActionResult> GetXRayHistory([FromQuery] int? patientId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = User.FindFirstValue(ClaimTypes.Role);
 
             if (string.IsNullOrEmpty(currentUserId))
                 return Unauthorized("User session invalid.");
 
-            var result = await _xRayRecordRepository.GetUserXRayHistory(patientId, currentUserId);
+            var result = await _xRayRecordRepository.GetUserXRayHistory(patientId, currentUserId,role);
             return Ok(result);
         }
     }

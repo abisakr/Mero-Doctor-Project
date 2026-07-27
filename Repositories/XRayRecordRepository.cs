@@ -112,7 +112,7 @@ namespace Mero_Doctor_Project.Repositories
             }
         }
 
-        public async Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(int? patientId, string currentUserId)
+        public async Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(int? patientId, string currentUserId,string role)
         {
             try
             {
@@ -136,20 +136,39 @@ namespace Mero_Doctor_Project.Repositories
                 }
 
                 // 2. Fetch records using the determined targetUserId
-                var records = await _context.XRayRecords
-                    .Where(r => r.PatientId == targetUserId) // Assuming PatientId in XRayRecords stores the string GUID
-                    .OrderByDescending(r => r.DateTime)
-                    .Select(r => new GetXRayHistoryDto
-                    {
-                        XRayImageUrl = r.XRayImageUrl,
-                        Result = r.Result,
-                        GradCamUrl = r.GradCamUrl,
-                        Confidence = (float)r.Confidence,
-                        RecommendedHospital = r.RecommendedHospital,
-                        DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
-                    })
-                    .ToListAsync();
+                List<GetXRayHistoryDto> records;
 
+                if (role == "Admin")
+                {
+                    records = await _context.XRayRecords
+                        .OrderByDescending(r => r.DateTime)
+                        .Select(r => new GetXRayHistoryDto
+                        {
+                            XRayImageUrl = r.XRayImageUrl,
+                            Result = r.Result,
+                            GradCamUrl = r.GradCamUrl,
+                            Confidence = (float)r.Confidence,
+                            RecommendedHospital = r.RecommendedHospital,
+                            DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
+                        })
+                        .ToListAsync();
+                }
+                else
+                {
+                    records = await _context.XRayRecords
+                        .Where(r => r.PatientId == targetUserId)
+                        .OrderByDescending(r => r.DateTime)
+                        .Select(r => new GetXRayHistoryDto
+                        {
+                            XRayImageUrl = r.XRayImageUrl,
+                            Result = r.Result,
+                            GradCamUrl = r.GradCamUrl,
+                            Confidence = (float)r.Confidence,
+                            RecommendedHospital = r.RecommendedHospital,
+                            DateTime = r.DateTime.ToString("yyyy-MM-dd hh:mm:ss tt")
+                        })
+                        .ToListAsync();
+                }
                 return new ResponseModel<List<GetXRayHistoryDto>>
                 {
                     Success = true,

@@ -9,6 +9,6 @@ namespace Mero_Doctor_Project.Repositories.Interfaces
     {
         Task<ResponseModel<XRayLiveHistoryDto>> DetectPneumonia(IFormFile xrayImage, string userId);
 
-        Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(int? patientId, string currentUserId);
+        Task<ResponseModel<List<GetXRayHistoryDto>>> GetUserXRayHistory(int? patientId, string currentUserId,string role);
     }
 }
